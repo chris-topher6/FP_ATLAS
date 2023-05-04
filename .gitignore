@@ -1,1 +1,7 @@
 .vscode/
+chiSquare.exe
+fileHelper.o
+mini.o
+plotDistribution.exe
+runSelection.exe 
+stackedPlots.exe 
