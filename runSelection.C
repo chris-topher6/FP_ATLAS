@@ -16,8 +16,7 @@ int main(int argn, char *argv[]) {
   }
   // path to the file to be studied + filename from argument called when executing file
   string inpath = string(argv[1]);
-//  std::filesystem::path inputPath = std::filesystem::path(inpath); //GPT
-  TString filename = TString(inpath).ReplaceAll("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/zprime/E4/Final/samples/", "");
+  TString filename = TString(inpath).ReplaceAll("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/E4/Final/samples/", "");
 
   cout << "Processing " << filename << endl;
 
@@ -37,8 +36,7 @@ int main(int argn, char *argv[]) {
   }
 
   // create file to which the selection is going to be saved to
-//  TString outpath = "output_runSelection/" + TString(filename);
-  TString outpath = "output_runSelection/data.el_selected.root"; //!!! das hier ist nicht elegant, aber ich habe keinen anderen Weg gefunden. Muss noch geändert werden!!!
+  TString outpath = "output_runSelection/" + TString(filename);
   outpath.ReplaceAll(".root", "_selected.root");
   TFile * newFile = new TFile(outpath, "RECREATE");
 
@@ -113,7 +111,11 @@ int main(int argn, char *argv[]) {
 
 
   // save efficiencies in .txt
-  ofstream outputFile("output_runSelection/efficiencies.txt");
+  TString effpath = "output_runSelection/" + TString(filename);
+  effpath.ReplaceAll(".root", "_efficiency.root");
+
+  ofstream outputFile(TString(effpath));
+
   if (outputFile.is_open()) {
     outputFile << "Efficiency lep_n: " << eff_lep_n << endl;
     outputFile << "Efficiency jet_n: " << eff_jet_n << endl;
