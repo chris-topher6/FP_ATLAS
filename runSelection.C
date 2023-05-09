@@ -39,10 +39,6 @@ int main(int argn, char *argv[]) {
   TString outpath = "output_runSelection/" + TString(filename);
   outpath.ReplaceAll(".root", "_selected.root");
   TFile * newFile = new TFile(outpath, "RECREATE");
-
-  cout << "Output path: " << outpath << endl;
-  cout << "Filename: " << filename << endl;
-
   
   // make a copy of the tree to be saved after selection
   TTree * newTree = tree->CloneTree();
@@ -62,7 +58,7 @@ int main(int argn, char *argv[]) {
 
     // get entry no. iEntry and tell every 100000th event
     tree->GetEntry(iEntry);
-    if ((iEntry+1)%100000 == 0) {
+    if ((iEntry+1)%1000000 == 0) {
       cout << "INFO processing the " << iEntry+1 << "th event" << endl;
     }
 
@@ -104,26 +100,29 @@ int main(int argn, char *argv[]) {
   }
 
   // efficiencies
+  double eff_tot      = static_cast<double>(passedEvents)              / totalEvents;
   double eff_lep_n    = static_cast<double>(totalEvents-count_lep_n)   / totalEvents;
   double eff_jet_n    = static_cast<double>(totalEvents-count_jet_n)   / totalEvents;
   double eff_jet_good = static_cast<double>(totalEvents-count_jet_good)/ totalEvents;
-  double eff_bjet = static_cast<double>(totalEvents-count_bjet)/ totalEvents;
+  double eff_bjet     = static_cast<double>(totalEvents-count_bjet)    / totalEvents;
 
 
   // save efficiencies in .txt
   TString effpath = "output_runSelection/" + TString(filename);
-  effpath.ReplaceAll(".root", "_efficiency.root");
+  effpath.ReplaceAll(".root", "_efficiency.txt");
 
-  ofstream outputFile(TString(effpath));
+  ofstream outputFile(effpath.Data());
 
   if (outputFile.is_open()) {
+    outputFile << "List of all Efficiencies" << endl;
+    outputFile << "total Efficiency: " << eff_tot << endl;
     outputFile << "Efficiency lep_n: " << eff_lep_n << endl;
     outputFile << "Efficiency jet_n: " << eff_jet_n << endl;
     outputFile << "Efficiency jet_good: " << eff_jet_good << endl;
     outputFile << "Efficiency bjet:" << eff_bjet << endl;
 
     outputFile.close();
-    cout << "Efficiencies saved to efficiencies.txt" << endl;
+    cout << "Efficiencies saved to .txt file" << endl;
     }
   else {
     cout << "Unable to open file for writing" << endl;
