@@ -65,20 +65,28 @@ int main(int argn, char *argv[]) {
     //////////////////////////////////////////////////////
     // To do: Implement all required selection criteria //
     bool passCriteria = true;
-    if (tree->lep_n != 1) {
+    if (tree->lep_n != 1) { //lepton number = 1
       count_lep_n++;
       passCriteria = false;
     }
-    if (tree->jet_n != 4) {
+    if (tree->jet_n != 4) { //jet number = 4
       count_jet_n++;
       passCriteria = false;
     }
-    if (*tree->jet_good != 1) {
+
+    bool allJetsGood = true; //all jets are good
+    for (int iJet = 0; iJet < static_cast<int>(tree->jet_n); ++iJet) {
+      if (tree->jet_good[iJet] != 1) {
+        allJetsGood = false;
+        break; // Exit the loop if any jet is not good
+      }
+    }
+    if (!allJetsGood) {
       count_jet_good++;
       passCriteria = false;
     }
 
-    int bJetCount = 0;
+    int bJetCount = 0; // 2 b-jets
     for (int iJet = 0; iJet < static_cast<int>(tree->jet_n); ++iJet) {
       if (tree->jet_MV1[iJet] > 0.78) {
         bJetCount++;
