@@ -45,7 +45,7 @@ int main(int argn, char *argv[]) {
 
   // Define parameters for efficiency
   int totalEvents=0;
-  int passedEvents;
+  int passedEvents=0;
   int count_lep_n=0;  
   int count_jet_n=0;
   int count_jet_good=0; 
