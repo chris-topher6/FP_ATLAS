@@ -71,7 +71,15 @@ int main(int argn, char *argv[]) {
   TH1F * h_jet_eta = InitHist("jet_eta", "#eta(j)", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi = InitHist("jet_phi", "#phi(j)", 100, -3.2, 3.2, isdata);
   TH1F * h_jet_E   = InitHist("jet_E", "#E(l)", 100, 0, 450.e3, isdata);
-  TH1F* h_jet_good_count = new TH1F("jet_good_count", "Number of good Jets", 10, 0, 4);
+
+  TH1F * h_jet_good_n = InitHist("jet_good_count", "Number of good Jets", 5, 0, 5, isdata);
+  TH1F * h_bjet_n = InitHist("bjet_count", "Number of b-Jets", 5, 0, 5, isdata);
+
+  TH1F * h_jet_pt_max = InitHist("jet_pt_max", "p_{T}(j_{max}) [MeV]", 100, 0, 180.e3, isdata);
+  TH1F * h_jet_eta_max = InitHist("jet_eta_max", "#eta(j_{max})", 100, -2.5, 2.5, isdata);
+  TH1F * h_jet_phi_max = InitHist("jet_phi_max", "#phi(j_{max})", 100, -3.2, 3.2, isdata);
+  TH1F * h_jet_E_max = InitHist("jet_E_max", "#E(j_{max})", 100, 0, 450.e3, isdata);
+
 
   TH1F * h_met_et  = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
   TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
@@ -100,7 +108,8 @@ int main(int argn, char *argv[]) {
     // fill histograms
     h_met_et->Fill(met_et ,w);
     h_met_phi->Fill(met_phi,w);
-
+    
+    // leptons
     for (UInt_t iLep = 0; iLep < tree->lep_n; ++iLep) {
       float lep_pt  = tree->lep_pt[iLep];
       float lep_eta = tree->lep_eta[iLep];
@@ -113,11 +122,18 @@ int main(int argn, char *argv[]) {
       h_lep_E->Fill(lep_E  ,w);
     }
 
-    // Check the jet_good condition
+    // jets
     int JetGood_n=0;
+    int bjet_n = 0;
+    float jet_pt_max = 0;
+    float jet_eta_max = 0;
+    float jet_phi_max = 0;
+    float jet_E_max = 0;
+
+    // Loop over jets in the event
     for (UInt_t iJet = 0; iJet < tree->jet_n; ++iJet) {
-      bool isJetGood = (tree->jet_good[iJet] == 1);
-      
+      bool isJetGood = (tree->jet_good[iJet] == 1); // Check the jet_good condition
+
       if (isJetGood) { // Increment jet_good count
         JetGood_n++;
       }
@@ -125,15 +141,33 @@ int main(int argn, char *argv[]) {
       float jet_eta = tree->jet_eta[iJet];
       float jet_phi = tree->jet_phi[iJet];
       float jet_E   = tree->jet_E[iJet];
+      float jet_MV1 = tree->jet_MV1[iJet];
+      
       // fill histograms
-      if(isJetGood){
+      if(isJetGood){ //only good Jets
         h_jet_pt->Fill(jet_pt ,w);
         h_jet_eta->Fill(jet_eta,w);
         h_jet_phi->Fill(jet_phi,w);
         h_jet_E->Fill(jet_E  ,w);
       }
+      if (jet_pt > jet_pt_max) { // only the jets with max pt
+        jet_pt_max = jet_pt;
+        jet_eta_max = jet_eta;
+        jet_phi_max = jet_phi;
+        jet_E_max = jet_E;
+      }
+      if (jet_MV1 > 0.7892) {
+        bjet_n++;
+      }
     }
-    h_jet_good_count->Fill(JetGood_n, w);
+    h_jet_good_n->Fill(JetGood_n, w);
+    h_bjet_n->Fill(bjet_n,w);
+    if(jet_pt_max!=0){
+      h_jet_pt_max->Fill(jet_pt_max ,w);
+      h_jet_eta_max->Fill(jet_eta_max,w);
+      h_jet_phi_max->Fill(jet_phi_max,w);
+      h_jet_E_max->Fill(jet_E_max  ,w);
+    }
     //
     ///////////////////////////////////////////////////////////////////////////////////////////
   }
@@ -151,15 +185,39 @@ int main(int argn, char *argv[]) {
   PlotHist("plots/pdfs/jet_eta.pdf", h_jet_eta);
   PlotHist("plots/pdfs/jet_phi.pdf", h_jet_phi);
   PlotHist("plots/pdfs/jet_E.pdf",   h_jet_E  );
-  PlotHist("plots/pdfs/jet_good_count.pdf", h_jet_good_count);
+
+  PlotHist("plots/pdfs/jet_good_n.pdf", h_jet_good_n);
+  PlotHist("plots/pdfs/bjet_n.pdf", h_bjet_n);
+
+  PlotHist("plots/pdfs/jet_pt_max.pdf",  h_jet_pt_max );
+  PlotHist("plots/pdfs/jet_eta_max.pdf", h_jet_eta_max);
+  PlotHist("plots/pdfs/jet_phi_max.pdf", h_jet_phi_max);
+  PlotHist("plots/pdfs/jet_E_max.pdf",   h_jet_E_max  );
 
   PlotHist("plots/pdfs/met_et.pdf",  h_met_et );
   PlotHist("plots/pdfs/met_phi.pdf", h_met_phi);
   /////////////////////////////////////////////////////////////////////////////////////////////
   //You can now use fileHelper::SaveNewHist to save histograms
-  TFile* outputFile = new TFile("plots/plot.root", "RECREATE");
+
+  // Extract the filename from the input file path
+  string inputFileName(argv[1]);
+  size_t pos = inputFileName.find_last_of('/');
+  if (pos != string::npos) {
+      inputFileName = inputFileName.substr(pos + 1);
+  }
+  
+  // Create the name of the .root file based on the input filename
+  pos = inputFileName.find_last_of('.');
+  if (pos != string::npos) {
+    inputFileName = inputFileName.substr(0, pos);
+  }
+  string outputRootFileName = "plots/" + inputFileName + "_plots.root";
+  
+  // Open the .root file for writing
+  TFile* outputFile = new TFile(outputRootFileName.c_str(), "RECREATE");
   TDirectory* histDir = outputFile->mkdir("Histograms");
   histDir->cd();
+
 
   //Save histograms
   h_lep_pt->Write();
@@ -170,7 +228,12 @@ int main(int argn, char *argv[]) {
   h_jet_eta->Write();
   h_jet_phi->Write();
   h_jet_E->Write();
-  h_jet_good_count->Write();
+  h_jet_good_n->Write();
+  h_bjet_n->Write();
+  h_jet_pt_max->Write();
+  h_jet_eta_max->Write();
+  h_jet_phi_max->Write();
+  h_jet_E_max->Write();
   h_met_et->Write();
   h_met_phi->Write();
 
@@ -187,6 +250,10 @@ int main(int argn, char *argv[]) {
   delete h_jet_eta;
   delete h_jet_phi;
   delete h_jet_E;
+  delete h_jet_pt_max;
+  delete h_jet_eta_max;
+  delete h_jet_phi_max;
+  delete h_jet_E_max;  
   delete h_met_et;
   delete h_met_phi;
   delete tree;
