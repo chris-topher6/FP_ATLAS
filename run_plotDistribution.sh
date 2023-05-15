@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Array mit den Dateinamen der .root-Dateien
-files=("data.el.root" "data.mu.root" "ttbar.el.root" "ttbar.mu.root")
+files=("data.el.root" "data.mu.root" "ttbar.el.root" "ttbar.mu.root" "zprime1000.el.root" "zprime1000.mu.root")
 
 # Schleife über die Dateien
 for file in "${files[@]}"

@@ -8,6 +8,7 @@
 #include "TLatex.h"
 #include "TLorentzVector.h"
 #include "TLegend.h"
+#include "physicsHelper.h"
 
 
 using namespace std;
@@ -61,7 +62,6 @@ int main(int argn, char *argv[]) {
   
   //////////////////////////////////////////////////////////////////////////////
   // To do: initialize histograms to be made
-  // example:
   TH1F * h_lep_pt  = InitHist("lep_pt","p_{T}(l) [MeV]",100,0,140.e3,isdata);
   TH1F * h_lep_eta = InitHist("lep_eta", "#eta(l)", 100, -2.5, 2.5, isdata);
   TH1F * h_lep_phi = InitHist("lep_phi", "#phi(l)", 100, -3.2, 3.2, isdata);
@@ -70,7 +70,7 @@ int main(int argn, char *argv[]) {
   TH1F * h_jet_pt  = InitHist("jet_pt","p_{T}(j) [MeV]",100,0,180.e3,isdata);
   TH1F * h_jet_eta = InitHist("jet_eta", "#eta(j)", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi = InitHist("jet_phi", "#phi(j)", 100, -3.2, 3.2, isdata);
-  TH1F * h_jet_E   = InitHist("jet_E", "#E(l)", 100, 0, 450.e3, isdata);
+  TH1F * h_jet_E   = InitHist("jet_E", "E(l)", 100, 0, 450.e3, isdata);
 
   TH1F * h_jet_good_n = InitHist("jet_good_count", "Number of good Jets", 5, 0, 5, isdata);
   TH1F * h_bjet_n = InitHist("bjet_count", "Number of b-Jets", 5, 0, 5, isdata);
@@ -78,11 +78,16 @@ int main(int argn, char *argv[]) {
   TH1F * h_jet_pt_max = InitHist("jet_pt_max", "p_{T}(j_{max}) [MeV]", 100, 0, 180.e3, isdata);
   TH1F * h_jet_eta_max = InitHist("jet_eta_max", "#eta(j_{max})", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi_max = InitHist("jet_phi_max", "#phi(j_{max})", 100, -3.2, 3.2, isdata);
-  TH1F * h_jet_E_max = InitHist("jet_E_max", "#E(j_{max})", 100, 0, 450.e3, isdata);
+  TH1F * h_jet_E_max = InitHist("jet_E_max", "E(j_{max})", 100, 0, 450.e3, isdata);
 
 
   TH1F * h_met_et  = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
   TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
+
+  TH1F * h_deltaPhi  = InitHist("deltaPhi", "#delta #phi(E_{T}^{miss},l)", 100, 0, 3.2, isdata);
+  TH1F * h_inv_mass3 = InitHist("inv_mass3", "m_{inv}(3j)", 100, 0, 20000, isdata);
+  TH1F * h_inv_mass = InitHist("inv_mass", "m_{inv}", 100, 10000, 500000, isdata);
+  TH1F * h_sys_eta = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
   //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -102,7 +107,7 @@ int main(int argn, char *argv[]) {
       w = tree->scaleFactor_COMBINED;
     
     /////////////////////////////////////////////////////////////////////////////////////////
-    // Get variable or calculate it (s. instructions)
+    // Get variable or calculate it (s. instructions)    
     float met_et  = tree->met_et;
     float met_phi = tree->met_phi;
     // fill histograms
@@ -115,11 +120,19 @@ int main(int argn, char *argv[]) {
       float lep_eta = tree->lep_eta[iLep];
       float lep_phi = tree->lep_phi[iLep];
       float lep_E   = tree->lep_E[iLep];
+      //derived quantities
+      float deltaPhi = 0;
+      // calculate quantities
+      float diff = fabs(lep_phi - met_phi);
+      float diff_2pi = fabs(2 * M_PI - diff);
+      deltaPhi = (diff < diff_2pi) ? diff : diff_2pi;
+
       // fill histograms
       h_lep_pt->Fill(lep_pt,w);
       h_lep_eta->Fill(lep_eta, w);
       h_lep_phi->Fill(lep_phi,w);
       h_lep_E->Fill(lep_E  ,w);
+      h_deltaPhi->Fill(deltaPhi,w);
     }
 
     // jets
@@ -129,6 +142,15 @@ int main(int argn, char *argv[]) {
     float jet_eta_max = 0;
     float jet_phi_max = 0;
     float jet_E_max = 0;
+
+    TLorentzVector jet1, jet2, jet3, jet4;
+    jet1.SetPxPyPzE(0.0, 0.0, 0.0, 0.0);
+    jet2.SetPxPyPzE(0.0, 0.0, 0.0, 0.0);
+    jet3.SetPxPyPzE(0.0, 0.0, 0.0, 0.0);
+    jet4.SetPxPyPzE(0.0, 0.0, 0.0, 0.0);
+    TLorentzVector lepton;
+    TLorentzVector metvect; 
+
 
     // Loop over jets in the event
     for (UInt_t iJet = 0; iJet < tree->jet_n; ++iJet) {
@@ -159,6 +181,23 @@ int main(int argn, char *argv[]) {
       if (jet_MV1 > 0.7892) {
         bjet_n++;
       }
+
+      // Compare jet_pt with the pT of the three largest jets
+      if (jet_pt > jet1.Pt()) { // Update four-vector values
+          jet4 = jet3;
+          jet3 = jet2;
+          jet2 = jet1;
+          jet1.SetPtEtaPhiE(tree->jet_pt[iJet], tree->jet_eta[iJet], tree->jet_phi[iJet], tree->jet_E[iJet]);
+      } else if (jet_pt > jet2.Pt()) {
+          jet4 = jet3;
+          jet3 = jet2;
+          jet2.SetPtEtaPhiE(tree->jet_pt[iJet], tree->jet_eta[iJet], tree->jet_phi[iJet], tree->jet_E[iJet]);
+      } else if (jet_pt > jet3.Pt()) {
+          jet4 = jet3;
+          jet3.SetPtEtaPhiE(tree->jet_pt[iJet], tree->jet_eta[iJet], tree->jet_phi[iJet], tree->jet_E[iJet]);
+      } else if (jet_pt > jet4.Pt()) {
+          jet4.SetPtEtaPhiE(tree->jet_pt[iJet], tree->jet_eta[iJet], tree->jet_phi[iJet], tree->jet_E[iJet]);
+      }
     }
     h_jet_good_n->Fill(JetGood_n, w);
     h_bjet_n->Fill(bjet_n,w);
@@ -168,6 +207,25 @@ int main(int argn, char *argv[]) {
       h_jet_phi_max->Fill(jet_phi_max,w);
       h_jet_E_max->Fill(jet_E_max  ,w);
     }
+    // Calculate m(3jets)
+    TLorentzVector sumJets = jet1 + jet2 + jet3;
+    Float_t inv_mass3 = sumJets.M();
+    if (inv_mass3 != 0){
+      h_inv_mass3->Fill(inv_mass3, w);
+    }
+    // Calculate m
+    lepton.SetPtEtaPhiE(tree->lep_pt[0], tree->lep_eta[0], tree->lep_phi[0], tree->lep_E[0]);
+    TLorentzVector* neutrino = physicsHelper::Neutrino(metvect, lepton);
+    TLorentzVector system = jet1;
+    system += jet2;
+    system += jet3;
+    system += jet4;
+    system += lepton;
+    system += *neutrino;
+    double inv_mass = system.M();
+    double sys_eta = system.Eta();
+    h_inv_mass->Fill(inv_mass,w);
+    h_sys_eta->Fill(sys_eta);
     //
     ///////////////////////////////////////////////////////////////////////////////////////////
   }
@@ -196,6 +254,11 @@ int main(int argn, char *argv[]) {
 
   PlotHist("plots/pdfs/met_et.pdf",  h_met_et );
   PlotHist("plots/pdfs/met_phi.pdf", h_met_phi);
+
+  PlotHist("plots/pdfs/deltaPhi.pdf", h_deltaPhi);
+  PlotHist("plots/pdfs/inv_mass3.pdf", h_inv_mass3);
+  PlotHist("plots/pdfs/inv_mass.pdf", h_inv_mass);
+  PlotHist("plots/pdfs/sys_eta.pdf", h_sys_eta);
   /////////////////////////////////////////////////////////////////////////////////////////////
   //You can now use fileHelper::SaveNewHist to save histograms
 
@@ -236,6 +299,10 @@ int main(int argn, char *argv[]) {
   h_jet_E_max->Write();
   h_met_et->Write();
   h_met_phi->Write();
+  h_deltaPhi->Write();
+  h_inv_mass3->Write();
+  h_inv_mass->Write();
+  h_sys_eta->Write();
 
 
   // Schließe die Root-Datei
@@ -256,6 +323,9 @@ int main(int argn, char *argv[]) {
   delete h_jet_E_max;  
   delete h_met_et;
   delete h_met_phi;
+  delete h_deltaPhi;
+  delete h_inv_mass3;
+  delete h_sys_eta;
   delete tree;
 
   return 0;
