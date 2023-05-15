@@ -42,7 +42,7 @@ int main(int argn, char *argv[]) {
   // path to the file to be studied, e.g.
   string path = string(argv[1]);
   // is the file a data file or not? setting this variable now might be useful
-  bool isdata = false;
+  bool isdata = true;
 
   // retrieve the tree from the file
   mini * tree = fileHelper::GetMiniTree(path);
@@ -62,10 +62,19 @@ int main(int argn, char *argv[]) {
   //////////////////////////////////////////////////////////////////////////////
   // To do: initialize histograms to be made
   // example:
-  TH1F * h_lep_pt = InitHist("lep_pt","p_{T}(l) [MeV]",100,0,200.e3,isdata);
-  //
-  //
+  TH1F * h_lep_pt  = InitHist("lep_pt","p_{T}(l) [MeV]",100,0,140.e3,isdata);
+  TH1F * h_lep_eta = InitHist("lep_eta", "#eta(l)", 100, -2.5, 2.5, isdata);
+  TH1F * h_lep_phi = InitHist("lep_phi", "#phi(l)", 100, -3.2, 3.2, isdata);
+  TH1F * h_lep_E   = InitHist("lep_E", "#E(l)", 100, 0, 400.e3, isdata);
 
+  TH1F * h_jet_pt  = InitHist("jet_pt","p_{T}(j) [MeV]",100,0,180.e3,isdata);
+  TH1F * h_jet_eta = InitHist("jet_eta", "#eta(j)", 100, -2.5, 2.5, isdata);
+  TH1F * h_jet_phi = InitHist("jet_phi", "#phi(j)", 100, -3.2, 3.2, isdata);
+  TH1F * h_jet_E   = InitHist("jet_E", "#E(l)", 100, 0, 450.e3, isdata);
+  TH1F* h_jet_good_count = new TH1F("jet_good_count", "Number of good Jets", 10, 0, 4);
+
+  TH1F * h_met_et  = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
+  TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
   //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -74,7 +83,7 @@ int main(int argn, char *argv[]) {
 
     // get entry no. iEntry and tell every 100th event
     tree->GetEntry(iEntry);
-    if ((iEntry+1)%10000 == 0) {
+    if ((iEntry+1)%1000000 == 0) {
       cout << "INFO processing the " << iEntry+1 << "th event" << endl;
     }
 
@@ -86,31 +95,100 @@ int main(int argn, char *argv[]) {
     
     /////////////////////////////////////////////////////////////////////////////////////////
     // Get variable or calculate it (s. instructions)
-    float lep_pt = tree->lep_pt[0];
-    //
-    ///////////////////////////////////////////////////////////////////////////////////////////  
+    float met_et  = tree->met_et;
+    float met_phi = tree->met_phi;
     // fill histograms
-    h_lep_pt->Fill(lep_pt,w);
+    h_met_et->Fill(met_et ,w);
+    h_met_phi->Fill(met_phi,w);
+
+    for (UInt_t iLep = 0; iLep < tree->lep_n; ++iLep) {
+      float lep_pt  = tree->lep_pt[iLep];
+      float lep_eta = tree->lep_eta[iLep];
+      float lep_phi = tree->lep_phi[iLep];
+      float lep_E   = tree->lep_E[iLep];
+      // fill histograms
+      h_lep_pt->Fill(lep_pt,w);
+      h_lep_eta->Fill(lep_eta, w);
+      h_lep_phi->Fill(lep_phi,w);
+      h_lep_E->Fill(lep_E  ,w);
+    }
+
+    // Check the jet_good condition
+    int JetGood_n=0;
+    for (UInt_t iJet = 0; iJet < tree->jet_n; ++iJet) {
+      bool isJetGood = (tree->jet_good[iJet] == 1);
+      
+      if (isJetGood) { // Increment jet_good count
+        JetGood_n++;
+      }
+      float jet_pt  = tree->jet_pt[iJet];
+      float jet_eta = tree->jet_eta[iJet];
+      float jet_phi = tree->jet_phi[iJet];
+      float jet_E   = tree->jet_E[iJet];
+      // fill histograms
+      if(isJetGood){
+        h_jet_pt->Fill(jet_pt ,w);
+        h_jet_eta->Fill(jet_eta,w);
+        h_jet_phi->Fill(jet_phi,w);
+        h_jet_E->Fill(jet_E  ,w);
+      }
+    }
+    h_jet_good_count->Fill(JetGood_n, w);
     //
     ///////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-        
   }
 
   SetStyle();
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   //To do: Use PlotHist to plot
+  PlotHist("plots/pdfs/lep_pt.pdf",  h_lep_pt);
+  PlotHist("plots/pdfs/lep_eta.pdf", h_lep_eta);
+  PlotHist("plots/pdfs/lep_phi.pdf", h_lep_phi);
+  PlotHist("plots/pdfs/lep_E.pdf",   h_lep_E  );
 
+  PlotHist("plots/pdfs/jet_pt.pdf",  h_jet_pt );
+  PlotHist("plots/pdfs/jet_eta.pdf", h_jet_eta);
+  PlotHist("plots/pdfs/jet_phi.pdf", h_jet_phi);
+  PlotHist("plots/pdfs/jet_E.pdf",   h_jet_E  );
+  PlotHist("plots/pdfs/jet_good_count.pdf", h_jet_good_count);
 
+  PlotHist("plots/pdfs/met_et.pdf",  h_met_et );
+  PlotHist("plots/pdfs/met_phi.pdf", h_met_phi);
   /////////////////////////////////////////////////////////////////////////////////////////////
   //You can now use fileHelper::SaveNewHist to save histograms
+  TFile* outputFile = new TFile("plots/plot.root", "RECREATE");
+  TDirectory* histDir = outputFile->mkdir("Histograms");
+  histDir->cd();
 
+  //Save histograms
+  h_lep_pt->Write();
+  h_lep_eta->Write();
+  h_lep_phi->Write();
+  h_lep_E->Write();
+  h_jet_pt->Write();
+  h_jet_eta->Write();
+  h_jet_phi->Write();
+  h_jet_E->Write();
+  h_jet_good_count->Write();
+  h_met_et->Write();
+  h_met_phi->Write();
+
+
+  // Schließe die Root-Datei
+  outputFile->Close();
 
   // To end the program properly, delete all dynamic instances
   delete h_lep_pt;
+  delete h_lep_eta;
+  delete h_lep_phi;
+  delete h_lep_E;
+  delete h_jet_pt;
+  delete h_jet_eta;
+  delete h_jet_phi;
+  delete h_jet_E;
+  delete h_met_et;
+  delete h_met_phi;
   delete tree;
 
   return 0;
@@ -138,7 +216,7 @@ TH1F * InitHist(TString varName,TString varUnit, int numberBins, float minBin, f
 
 void PlotHist(TString filename, TH1F * hist){
 	TCanvas * canv = new TCanvas("canv","Canvas for histogram",1);
-  hist->Draw("hist");
+  hist->Draw("HIST+E");
   canv->Print(filename);
   cout << "INFO: " << filename << " has been created" << endl;
   delete canv;
@@ -209,5 +287,3 @@ void SetStyle() {
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
 }
-
-
