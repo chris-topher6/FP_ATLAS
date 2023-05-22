@@ -213,9 +213,10 @@ int main(int argn, char *argv[]) {
     if (inv_mass3 != 0){
       h_inv_mass3->Fill(inv_mass3, w);
     }
-    // Calculate m
+    // Calculate m(4 jets, lep, v_lep)
     lepton.SetPtEtaPhiE(tree->lep_pt[0], tree->lep_eta[0], tree->lep_phi[0], tree->lep_E[0]);
-    TLorentzVector* neutrino = physicsHelper::Neutrino(metvect, lepton);
+    TLorentzVector* neutrino = physicsHelper
+    ::Neutrino(metvect, lepton);
     TLorentzVector system = jet1;
     system += jet2;
     system += jet3;
