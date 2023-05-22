@@ -42,8 +42,19 @@ int main(int argn, char *argv[]) {
 
   // path to the file to be studied, e.g.
   string path = string(argv[1]);
+
+  // Extract the filename from the input file path
+  string inputFileName(argv[1]);
+  size_t pos = inputFileName.find_last_of('/');
+  if (pos != string::npos) {
+      inputFileName = inputFileName.substr(pos + 1);
+  }
+
   // is the file a data file or not? setting this variable now might be useful
-  bool isdata = true;
+  bool isdata = false;
+  if(inputFileName.find("data")!= string::npos){
+    isdata = true;
+  }
 
   // retrieve the tree from the file
   mini * tree = fileHelper::GetMiniTree(path);
@@ -73,21 +84,21 @@ int main(int argn, char *argv[]) {
   TH1F * h_jet_E   = InitHist("jet_E", "E(l)", 100, 0, 450.e3, isdata);
 
   TH1F * h_jet_good_n = InitHist("jet_good_count", "Number of good Jets", 5, 0, 5, isdata);
-  TH1F * h_bjet_n = InitHist("bjet_count", "Number of b-Jets", 5, 0, 5, isdata);
+  TH1F * h_bjet_n     = InitHist("bjet_count", "Number of b-Jets", 5, 0, 5, isdata);
 
-  TH1F * h_jet_pt_max = InitHist("jet_pt_max", "p_{T}(j_{max}) [MeV]", 100, 0, 180.e3, isdata);
+  TH1F * h_jet_pt_max  = InitHist("jet_pt_max", "p_{T}(j_{max}) [MeV]", 100, 0, 180.e3, isdata);
   TH1F * h_jet_eta_max = InitHist("jet_eta_max", "#eta(j_{max})", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi_max = InitHist("jet_phi_max", "#phi(j_{max})", 100, -3.2, 3.2, isdata);
-  TH1F * h_jet_E_max = InitHist("jet_E_max", "E(j_{max})", 100, 0, 450.e3, isdata);
+  TH1F * h_jet_E_max   = InitHist("jet_E_max", "E(j_{max})", 100, 0, 450.e3, isdata);
 
 
-  TH1F * h_met_et  = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
+  TH1F * h_met_et   = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
   TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
 
   TH1F * h_deltaPhi  = InitHist("deltaPhi", "#delta #phi(E_{T}^{miss},l)", 100, 0, 3.2, isdata);
   TH1F * h_inv_mass3 = InitHist("inv_mass3", "m_{inv}(3j)", 100, 0, 20000, isdata);
-  TH1F * h_inv_mass = InitHist("inv_mass", "m_{inv}", 100, 10000, 500000, isdata);
-  TH1F * h_sys_eta = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
+  TH1F * h_inv_mass  = InitHist("inv_mass", "m_{inv}", 100, 10000, 1.e6, isdata);
+  TH1F * h_sys_eta   = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
   //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -262,13 +273,6 @@ int main(int argn, char *argv[]) {
   PlotHist("plots/pdfs/sys_eta.pdf", h_sys_eta);
   /////////////////////////////////////////////////////////////////////////////////////////////
   //You can now use fileHelper::SaveNewHist to save histograms
-
-  // Extract the filename from the input file path
-  string inputFileName(argv[1]);
-  size_t pos = inputFileName.find_last_of('/');
-  if (pos != string::npos) {
-      inputFileName = inputFileName.substr(pos + 1);
-  }
   
   // Create the name of the .root file based on the input filename
   pos = inputFileName.find_last_of('.');
