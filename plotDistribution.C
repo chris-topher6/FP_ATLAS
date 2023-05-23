@@ -96,7 +96,7 @@ int main(int argn, char *argv[]) {
   TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
 
   TH1F * h_deltaPhi  = InitHist("deltaPhi", "#delta #phi(E_{T}^{miss},l)", 100, 0, 3.2, isdata);
-  TH1F * h_inv_mass3 = InitHist("inv_mass3", "m_{inv}(3j)", 100, 0, 20000, isdata);
+  TH1F * h_inv_mass3 = InitHist("inv_mass3", "m_{inv}(3j)", 100, 0, 1500000, isdata);
   TH1F * h_inv_mass  = InitHist("inv_mass", "m_{inv}", 100, 10000, 1.e6, isdata);
   TH1F * h_sys_eta   = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
   //////////////////////////////////////////////////////////////////////////////////
@@ -189,8 +189,15 @@ int main(int argn, char *argv[]) {
         jet_phi_max = jet_phi;
         jet_E_max = jet_E;
       }
-      if (jet_MV1 > 0.7892) {
+      if (jet_MV1 > 0.78) {
         bjet_n++;
+      }
+
+      if(jet_pt_max!=0){
+        h_jet_pt_max->Fill(jet_pt_max ,w);
+        h_jet_eta_max->Fill(jet_eta_max,w);
+        h_jet_phi_max->Fill(jet_phi_max,w);
+        h_jet_E_max->Fill(jet_E_max  ,w);
       }
 
       // Compare jet_pt with the pT of the three largest jets
@@ -210,14 +217,10 @@ int main(int argn, char *argv[]) {
           jet4.SetPtEtaPhiE(tree->jet_pt[iJet], tree->jet_eta[iJet], tree->jet_phi[iJet], tree->jet_E[iJet]);
       }
     }
+    
     h_jet_good_n->Fill(JetGood_n, w);
     h_bjet_n->Fill(bjet_n,w);
-    if(jet_pt_max!=0){
-      h_jet_pt_max->Fill(jet_pt_max ,w);
-      h_jet_eta_max->Fill(jet_eta_max,w);
-      h_jet_phi_max->Fill(jet_phi_max,w);
-      h_jet_E_max->Fill(jet_E_max  ,w);
-    }
+
     // Calculate m(3jets)
     TLorentzVector sumJets = jet1 + jet2 + jet3;
     Float_t inv_mass3 = sumJets.M();
@@ -246,7 +249,7 @@ int main(int argn, char *argv[]) {
 
   ///////////////////////////////////////////////////////////////////////////////////////////
   //To do: Use PlotHist to plot
-  PlotHist("plots/pdfs/lep_pt.pdf",  h_lep_pt);
+  
   PlotHist("plots/pdfs/lep_eta.pdf", h_lep_eta);
   PlotHist("plots/pdfs/lep_phi.pdf", h_lep_phi);
   PlotHist("plots/pdfs/lep_E.pdf",   h_lep_E  );
