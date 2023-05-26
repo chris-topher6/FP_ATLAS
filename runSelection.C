@@ -69,12 +69,12 @@ int main(int argn, char *argv[]) {
       count_lep_n++;
       passCriteria = false;
     }
-    if (tree->jet_n != 4) { //jet number = 4
+    if (tree->jet_n != 4) { //jet number = 4; Aaron: besser > 4
       count_jet_n++;
       passCriteria = false;
     }
 
-    bool allJetsGood = true; //all jets are good
+    bool allJetsGood = true; //all jets are good; Aaron: nur 4 müssen gut sein
     for (int iJet = 0; iJet < static_cast<int>(tree->jet_n); ++iJet) {
       if (tree->jet_good[iJet] != 1) {
         allJetsGood = false;
