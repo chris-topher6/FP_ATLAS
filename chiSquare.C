@@ -15,7 +15,7 @@ float chisquareNBins(TH1F * data, TH1F * mc);
 
 void SetStyle();
 
-int main(){
+int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe output_runSelection/data.root output_runSelection/mc.root
 
 	// At this point, you want to first test the agreement between data and monte carlo.
 	// After that, you want to create a limit plot
@@ -30,10 +30,43 @@ int main(){
 	//
 	////////////////////////////////////////////////////////////////////////////
 
+    // Get the file paths from the command-line arguments
+    string dataFilePath = argv[1];
+    string mcFilePath = argv[2];
 
+    // Open the data file
+    TFile* dataFile = new TFile(dataFilePath.c_str(), "READ");
+    if (!dataFile || dataFile->IsZombie())
+    {
+        cout << "Error opening data file: " << dataFilePath << endl;
+        return 1;
+    }
 
+    // Get the data histogram from the file
+    TH1F* dataHistogram = static_cast<TH1F*>(dataFile->Get("dataHistogram"));
+    if (!dataHistogram)
+    {
+        cout << "Error retrieving data histogram from the file." << endl;
+        return 1;
+    }
 
+    // Open the Monte Carlo file
+    TFile* mcFile = new TFile(mcFilePath.c_str(), "READ");
+    if (!mcFile || mcFile->IsZombie())
+    {
+        cout << "Error opening Monte Carlo file: " << mcFilePath << endl;
+        return 1;
+    }
 
+    // Get the Monte Carlo histogram from the file
+    TH1F* mcHistogram = static_cast<TH1F*>(mcFile->Get("mcHistogram"));
+    if (!mcHistogram)
+    {
+        cout << "Error retrieving Monte Carlo histogram from the file." << endl;
+        return 1;
+    }
+
+	cout << "It lives!" << endl;
 
 
 
