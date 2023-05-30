@@ -9,6 +9,8 @@ files=(
     "wjets.el"        "wjets.mu" 
     "zjets.el"        "zjets.mu" 
     "diboson.el"      "diboson.mu"
+    "singletop.el"    "singletop.mu"
+    "ttbar.el"        "ttbar.mu"
     )
 
 # Schleife über die Dateien in ~/E4/Final/samples/
