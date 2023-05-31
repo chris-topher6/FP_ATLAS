@@ -9,11 +9,28 @@
 #include "TLatex.h"
 #include "TLegend.h"
 #include <cmath>
+#include <fstream>
 
 using namespace std;
 
 void SetStyle();
 void PlotStack(TString path, TString varUnit, THStack * mc, TH1F * data, TLegend * legend);
+
+vector<float> LoadScalingFactors(const string& filename) {
+    vector<float> scalingFactors;
+    ifstream file(filename);
+    if (file.is_open()) {
+        string line;
+        while (getline(file, line)) {
+            float factor = stof(line);
+            scalingFactors.push_back(factor);
+        }
+        file.close();
+    } else {
+        cout << "Fehler beim Öffnen der Datei: " << filename << endl;
+    }
+    return scalingFactors;
+}
 
 int main() {
   ////////////////////////////////////////////////////////////////////////////////
@@ -22,16 +39,6 @@ int main() {
 
   // Let's say you want to have all the relevant plots in one file, this is how you create it
   TFile * analysis = new TFile("analysis.root", "RECREATE");
-
-  //Skalierungsfaktoren
-  vector<float> N_zprime1000 = {588.4834999999999, 611.5395};
-  vector<float> N_diboson    = {9.99984115, 10.098570519999999}; 
-  vector<float> N_singletop  = {875.189106, 883.38492};
-//  vector<float> N_ttbar      = {22541.254226, 22138.992324};
-  vector<float> N_ttbar      = {55.7, 64.4};
-  vector<float> N_wjets      = {1164.3670136, 1316.6468836};
-  vector<float> N_zjets      = {471.0779316, 250.76524686};
-
 
   // Deklarationen für for Schleife über zprime
   vector<string> zprime_masses= {
@@ -47,12 +54,33 @@ int main() {
     "3000",
   };
   
-  // Deklarationen für for Schleife über el und mu
   vector<string> leptons = {"el", "mu"};
+  unsigned int idx1 = 0;
 
   for (const auto& zprime_mass : zprime_masses){
+    unsigned int idx2 = 0;
+    //Skalierungsfaktoren
 
-    unsigned int idx = 0;
+    // Erstellen eines Vektors mit den Werten aus .txt
+    vector<float> scalingFactors = LoadScalingFactors("scale.txt");
+    
+    // Transformation in 2x2-Matrix
+    vector<vector<float>> scalingMatrix;
+    for (size_t i = 0; i < scalingFactors.size(); i += 2) {
+      vector<float> row;
+      row.push_back(scalingFactors[i]);
+      row.push_back(scalingFactors[i + 1]);
+      scalingMatrix.push_back(row);
+    }
+    // einsetzen der Matrixelemente in N_particle
+    vector<float> N_diboson    = scalingMatrix[0]; 
+    vector<float> N_singletop  = scalingMatrix[1];
+    vector<float> N_ttbar      = scalingMatrix[2];
+    vector<float> N_wjets      = scalingMatrix[3];
+    vector<float> N_zjets      = scalingMatrix[4];
+    vector<float> N_zprime     = scalingMatrix[5+idx1];
+    idx1++;
+
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
 
       // now you have to get the histograms you want to use. If you have saved them in another file beforehand, you can get them this way:
@@ -76,10 +104,10 @@ int main() {
 
     // Initialisiere Histogramme
 
-      TFile * file_histogram_zprime1000 = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/zprime" + zprime_mass + "." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_zprime1000 = (TH1F*)file_histogram_zprime1000->Get("inv_mass");
-      TDirectoryFile *dir_zprime1000 = (TDirectoryFile*)file_histogram_zprime1000->Get("Histograms");
-      h_zprime1000 = (TH1F*)dir_zprime1000->Get("inv_mass");
+      TFile * file_histogram_zprime = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/zprime" + zprime_mass + "." + lepton + "_selected_plots.root").c_str());
+      TH1F * h_zprime = (TH1F*)file_histogram_zprime->Get("inv_mass");
+      TDirectoryFile *dir_zprime = (TDirectoryFile*)file_histogram_zprime->Get("Histograms");
+      h_zprime = (TH1F*)dir_zprime->Get("inv_mass");
 
       TFile * file_histogram_diboson = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/diboson." + lepton + "_selected_plots.root").c_str());
       TH1F * h_diboson = (TH1F*)file_histogram_diboson->Get("inv_mass");
@@ -113,28 +141,28 @@ int main() {
       cout << "N_ges: "<< N_ges << endl;
       cout << "scale Factors:" << endl;
 
-      float scaleFactor_zprime1000= N_zprime1000[idx] / N_ges;
-      cout << "zprime1000: "<< scaleFactor_zprime1000 << endl;
+      float scaleFactor_zprime= N_zprime[idx2] / N_ges;
+      cout << "zprime " + zprime_mass + ": "<< scaleFactor_zprime << endl;
 
-      float scaleFactor_diboson = N_diboson[idx] / N_ges;
+      float scaleFactor_diboson = N_diboson[idx2] / N_ges;
       cout << "diboson: "<< scaleFactor_diboson << endl;
 
-      float scaleFactor_singletop = N_singletop[idx] / N_ges;  
+      float scaleFactor_singletop = N_singletop[idx2] / N_ges;  
       cout << "singletop: "<< scaleFactor_singletop << endl;
 
-      float scaleFactor_ttbar = N_ttbar[idx] / N_ges;
+      float scaleFactor_ttbar = N_ttbar[idx2] / N_ges;
 //      scaleFactor_ttbar = 0.025;  
       cout << "ttbar: "<< scaleFactor_ttbar << endl;
 
-      float scaleFactor_wjets= N_wjets[idx] / N_ges;
+      float scaleFactor_wjets= N_wjets[idx2] / N_ges;
       cout << "wjets: "<< scaleFactor_wjets << endl;
 
-      float scaleFactor_zjets= N_zjets[idx] / N_ges;
+      float scaleFactor_zjets= N_zjets[idx2] / N_ges;
       cout << "zjets: "<< scaleFactor_zjets << endl;
 
-      idx++;
+      idx2++;
 
-      h_zprime1000->Scale(scaleFactor_zprime1000);
+      h_zprime->Scale(scaleFactor_zprime);
       h_diboson->Scale(scaleFactor_diboson);
       h_singletop->Scale(scaleFactor_singletop);
       h_ttbar->Scale(scaleFactor_ttbar);
@@ -144,7 +172,7 @@ int main() {
 
       //You should set a different fill color for each process using SetFillColor(Color_t fcolor); examples for fcolor are kRed, kGreen, kYellow etc. 
       //  You can also add integer like kRed+2 to change the shade
-      h_zprime1000->SetFillColor(kRed);
+      h_zprime->SetFillColor(kRed);
       h_diboson->SetFillColor(kBlue);
       h_singletop->SetFillColor(kCyan);
       h_ttbar->SetFillColor(kMagenta);
@@ -152,7 +180,7 @@ int main() {
       h_zjets->SetFillColor(kYellow);
 
       //You might also want to change the line color using e.g. SetLineColor(kBlack)
-      h_zprime1000->SetLineColor(kBlack);
+      h_zprime->SetLineColor(kBlack);
       h_diboson->SetLineColor(kBlack);
       h_singletop->SetLineColor(kBlack);
       h_ttbar->SetLineColor(kBlack);
@@ -165,7 +193,7 @@ int main() {
       leg->SetBorderSize(0);
       leg->SetTextSize(0.035);
       leg->AddEntry(h_data,"data", "f");
-      leg->AddEntry(h_zprime1000, "zprime", "f");
+      leg->AddEntry(h_zprime, ("zprime" + zprime_mass).c_str(), "f");
       leg->AddEntry(h_diboson, "diboson", "f");
       leg->AddEntry(h_singletop, "singletop", "f");
       leg->AddEntry(h_ttbar, "ttbar", "f");  
@@ -182,7 +210,7 @@ int main() {
       mcStack->Add(h_ttbar);
       mcStack->Add(h_wjets);
       mcStack->Add(h_zjets);
-      mcStack->Add(h_zprime1000);   
+      mcStack->Add(h_zprime);   
 
       //For histograms of data, you can use the following commands to change the attributes of the histobramm
       h_data->SetLineWidth(1);
@@ -197,15 +225,15 @@ int main() {
       analysis->cd();
       //For all objects you want to write to the analysis file, call Write(), e.gl
       h_data->Write();
-      h_zprime1000->Write();
+      h_zprime->Write();
 
       PlotStack("stackedPlots/stackedPlot_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
 
       //End the programm properly by deleting all dynamic instances
       file_histogram_data->Close();
-      file_histogram_zprime1000->Close();
+      file_histogram_zprime->Close();
       delete file_histogram_data;
-      delete file_histogram_zprime1000;
+      delete file_histogram_zprime;
       delete file_histogram_diboson;
       delete file_histogram_singletop;
       delete file_histogram_ttbar;
