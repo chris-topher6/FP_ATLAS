@@ -34,6 +34,12 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
     string dataFilePath = argv[1];
     string mcFilePath = argv[2];
 
+	// extract string for pdf name
+    size_t lastSlashIndex = mcFilePath.find_last_of("/");
+    string fileName = mcFilePath.substr(lastSlashIndex + 1);
+    size_t firstDotIndex = fileName.find_first_of(".");
+    string extractedString = fileName.substr(0, firstDotIndex);
+
     // Open the data file
     TFile* dataFile = new TFile(dataFilePath.c_str(), "READ");
     if (!dataFile || dataFile->IsZombie())
@@ -43,7 +49,9 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
     }
 
     // Get the data histogram from the file
-    TH1F* dataHistogram = static_cast<TH1F*>(dataFile->Get("dataHistogram"));
+    TH1F* dataHistogram = static_cast<TH1F*>(dataFile->Get("inv_mass"));
+    TDirectoryFile *dir_data = (TDirectoryFile*)dataFile->Get("Histograms");
+	dataHistogram = (TH1F*)dir_data->Get("inv_mass");
     if (!dataHistogram)
     {
         cout << "Error retrieving data histogram from the file." << endl;
@@ -51,7 +59,8 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
     }
 
     // Open the Monte Carlo file
-    TFile* mcFile = new TFile(mcFilePath.c_str(), "READ");
+    TFile* mcFile =  new TFile((mcFilePath).c_str(), "READ");
+
     if (!mcFile || mcFile->IsZombie())
     {
         cout << "Error opening Monte Carlo file: " << mcFilePath << endl;
@@ -59,7 +68,8 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
     }
 
     // Get the Monte Carlo histogram from the file
-    TH1F* mcHistogram = static_cast<TH1F*>(mcFile->Get("mcHistogram"));
+    TH1F* mcHistogram = static_cast<TH1F*>(mcFile->Get("mcsum"));
+
     if (!mcHistogram)
     {
         cout << "Error retrieving Monte Carlo histogram from the file." << endl;
@@ -74,8 +84,16 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 	// Start with arrays of the mass, the expected cross section and the limits you calculated
 	// The mass array has already be filled for you in order to remind you of the use of arrays
 	float mass[11] = {400.,500.,750.,1000.,1250.,1500.,1750.,2000.,2250.,2500.,3000};
-	float expectedXsec[11] = {};
-	float limitXsec[11] = {};
+	float expectedXsec[11] = {1.1e2, 8.2e1, 2.0e1, 5.5, 1.9, 8.3e-1, 3.0e-1, 1.4e-1, 6.7e-2, 3.5e-2, 1.2e-2};
+	float limitXsec[11];
+	float chiSquare = chisquareNBins(dataHistogram, mcHistogram);
+	int dof = dataHistogram->GetNbinsX() - 1;  // #Freiheitsgrade= #Bins - 1
+	// Berechne das kritische Chi-Quadrat-Quantil für 95% Konfidenz und Freiheitsgrade
+	float criticalValue = TMath::ChisquareQuantile(0.95, dof);
+	for (int i = 0; i < 11; i++) {
+	  limitXsec[i] = expectedXsec[i] * chiSquare / criticalValue;
+	}
+
 
 	// Create a canvas
 	SetStyle();
@@ -110,7 +128,7 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
   	g_limits->Draw("l SAME");
   	l->Draw();
   	c_limits->SetLogy();
-  	c_limits->Print("limits.pdf");
+  	c_limits->Print(("limits/limits_" + extractedString + ".pdf").c_str());
 	
 
 	return 0;
