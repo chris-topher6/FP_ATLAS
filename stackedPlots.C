@@ -46,6 +46,7 @@ int main() {
     "500",
     "750",
     "1000",
+    "1250",
     "1500",
     "1750",
     "2000",
@@ -82,6 +83,8 @@ int main() {
     idx1++;
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
+
+      TFile * stackedPlots = new TFile(("stackedPlots/analysis_" + zprime_mass + "_" + lepton + ".root").c_str(), "RECREATE");
 
       // now you have to get the histograms you want to use. If you have saved them in another file beforehand, you can get them this way:
       TFile * file_histogram_data = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/data." + lepton + "_selected_plots.root").c_str());
@@ -205,12 +208,34 @@ int main() {
 
       THStack *mcStack = new THStack("Stack", "Stacked MC");
 
-      mcStack->Add(h_diboson);
-      mcStack->Add(h_singletop); 
       mcStack->Add(h_ttbar);
+      mcStack->Add(h_singletop); 
+      mcStack->Add(h_diboson);
       mcStack->Add(h_wjets);
       mcStack->Add(h_zjets);
       mcStack->Add(h_zprime);   
+
+      // und hier nochmal nur die Summe ohne THStack, damit wir wirklich die Summe aus allen Simulationen haben
+      int nbins = 100;  // Anzahl der Bins
+      double xmin = 0.0;  // Untere Grenze des Binning-Bereichs
+      double xmax = 1000000.0;  // Obere Grenze des Binning-Bereichs
+
+      // Erstellen des Summen-Histogramms
+      TH1F *h_sum = new TH1F("Sum", "Sum of MC", nbins, xmin, xmax);
+
+      // Berechnung der Summe der gestapelten Simulationen
+      for (int i = 1; i <= nbins; i++)
+      {
+          double sumContent = 0.0;
+          for (int j = 0; j < mcStack->GetHists()->GetEntries(); j++)
+          {
+              TH1F *hist = dynamic_cast<TH1F *>(mcStack->GetHists()->At(j));
+              sumContent += hist->GetBinContent(i);
+          }
+          h_sum->SetBinContent(i, sumContent);
+      }
+      h_sum->Draw();
+
 
       //For histograms of data, you can use the following commands to change the attributes of the histobramm
       h_data->SetLineWidth(1);
@@ -218,15 +243,21 @@ int main() {
       h_data->SetMarkerStyle(7);
       h_data->SetMarkerSize(1);
       h_data->SetMarkerColor(kBlack);
-      h_data->Draw("E"); // Zeichne das Histogramm mit Fehlerbalken
 
-      //For plotting data and stacked MC, you can use the function PlotStack at the end of this file 
+     //For plotting data and stacked MC, you can use the function PlotStack at the end of this file 
+      TCanvas *c = new TCanvas("c", "Stacked Plot");
+      mcStack->Draw("HIST");
+      leg->Draw("SAME");
 
-      analysis->cd();
       //For all objects you want to write to the analysis file, call Write(), e.gl
-      h_data->Write();
-      h_zprime->Write();
+      analysis->cd();
+      mcStack->Write(("mcStack_" + zprime_mass + "_" + lepton).c_str());
+      stackedPlots->cd();
+      mcStack->Write("mcStack");
+      h_sum->Write("mcsum");
+      
 
+      // Save the canvas as a PDF file
       PlotStack("stackedPlots/stackedPlot_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
 
       //End the programm properly by deleting all dynamic instances
@@ -240,9 +271,14 @@ int main() {
       delete file_histogram_wjets;
       delete file_histogram_zjets;
       delete leg;
-      analysis->Close();
+      delete c;
+      delete stackedPlots;
+
     }
   }
+  analysis->Close();
+  delete analysis;
+
   return 0;
 }
 
