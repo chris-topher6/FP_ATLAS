@@ -32,6 +32,12 @@ vector<float> LoadScalingFactors(const string& filename) {
     return scalingFactors;
 }
 
+struct Simulation_info {
+    double xsec;
+    int events;
+};
+
+
 int main() {
   ////////////////////////////////////////////////////////////////////////////////
   // This file can guide you through the process of combining monte carlo and data
@@ -54,32 +60,52 @@ int main() {
     "2500",
     "3000",
   };
+
+  // Werte für Berechnungen der Skalierungsfaktoren
+  int L = 1000;
+  vector<Simulation_info> simulation_info = {
+      {29.41, 922521},    //diboson
+      {52.47, 1468942},   //singletop
+      {252.82, 7847944},  //ttbar
+      {36214, 66536222},  //wjet
+      {2516.2, 37422926}, //zjet
+      {110.0, 100000},    //zprime400
+      {82.0, 100000},     //zprime500
+      {20.0, 100000},     //zprime750
+      { 5.5, 100000},     //zprime1000
+      { 1.9, 100000},     //zprime1250
+      { 0.83, 100000},    //zprime1500
+      { 0.3, 100000},     //zprime1750  
+      { 0, 100000},       //zprime2000
+      { 0.067, 100000},   //zprime2250
+      { 0.035, 100000},   //zprime2500
+      { 0.012, 100000}    //zprime3000
+  };
+  vector<double> w;
+  for (const auto& info : simulation_info) {
+    double weight = L * info.xsec / info.events;
+    w.push_back(weight);
+  }
+  
   
   vector<string> leptons = {"el", "mu"};
   unsigned int idx1 = 0;
 
   for (const auto& zprime_mass : zprime_masses){
-    unsigned int idx2 = 0;
-    //Skalierungsfaktoren
 
-    // Erstellen eines Vektors mit den Werten aus .txt
-    vector<float> scalingFactors = LoadScalingFactors("scale.txt");
-    
-    // Transformation in 2x2-Matrix
-    vector<vector<float>> scalingMatrix;
-    for (size_t i = 0; i < scalingFactors.size(); i += 2) {
-      vector<float> row;
-      row.push_back(scalingFactors[i]);
-      row.push_back(scalingFactors[i + 1]);
-      scalingMatrix.push_back(row);
-    }
-    // einsetzen der Matrixelemente in N_particle
-    vector<float> N_diboson    = scalingMatrix[0]; 
-    vector<float> N_singletop  = scalingMatrix[1];
-    vector<float> N_ttbar      = scalingMatrix[2];
-    vector<float> N_wjets      = scalingMatrix[3];
-    vector<float> N_zjets      = scalingMatrix[4];
-    vector<float> N_zprime     = scalingMatrix[5+idx1];
+    //Skalierungsfaktoren
+    float scaleFactor_diboson    = w[0]; 
+    float scaleFactor_singletop  = w[1];
+    float scaleFactor_ttbar      = w[2];
+    float scaleFactor_wjets      = w[3];
+    float scaleFactor_zjets      = w[4];
+    float scaleFactor_zprime     = w[5+idx1];
+    cout << "diboson  : " << scaleFactor_diboson   << endl;
+    cout << "singletop: " << scaleFactor_singletop << endl;
+    cout << "ttbar    : " << scaleFactor_ttbar     << endl;
+    cout << "wjets    : " << scaleFactor_wjets     << endl;
+    cout << "zjets    : " << scaleFactor_zjets     << endl;
+    cout << "zprime   : " << scaleFactor_zprime    << endl;    
     idx1++;
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
@@ -139,31 +165,6 @@ int main() {
 
       //If you want to scale the histogram, use Scale(float factor)
       //If you want to adjust the bin width, use Rebin(int number_of_bins_to_be_merged)
-
-      float N_ges = h_data->GetEntries();
-      cout << "N_ges: "<< N_ges << endl;
-      cout << "scale Factors:" << endl;
-
-      float scaleFactor_zprime= N_zprime[idx2] / N_ges;
-      cout << "zprime " + zprime_mass + ": "<< scaleFactor_zprime << endl;
-
-      float scaleFactor_diboson = N_diboson[idx2] / N_ges;
-      cout << "diboson: "<< scaleFactor_diboson << endl;
-
-      float scaleFactor_singletop = N_singletop[idx2] / N_ges;  
-      cout << "singletop: "<< scaleFactor_singletop << endl;
-
-      float scaleFactor_ttbar = N_ttbar[idx2] / N_ges;
-//      scaleFactor_ttbar = 0.025;  
-      cout << "ttbar: "<< scaleFactor_ttbar << endl;
-
-      float scaleFactor_wjets= N_wjets[idx2] / N_ges;
-      cout << "wjets: "<< scaleFactor_wjets << endl;
-
-      float scaleFactor_zjets= N_zjets[idx2] / N_ges;
-      cout << "zjets: "<< scaleFactor_zjets << endl;
-
-      idx2++;
 
       h_zprime->Scale(scaleFactor_zprime);
       h_diboson->Scale(scaleFactor_diboson);

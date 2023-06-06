@@ -97,7 +97,7 @@ int main(int argn, char *argv[]) {
 
   TH1F * h_deltaPhi  = InitHist("deltaPhi", "#delta #phi(E_{T}^{miss},l)", 100, 0, 3.2, isdata);
   TH1F * h_inv_mass3 = InitHist("inv_mass3", "m_{inv}(3j)", 100, 0, 1500000, isdata);
-  TH1F * h_inv_mass  = InitHist("inv_mass", "m_{inv}", 100, 10000, 1.e6, isdata);
+  TH1F * h_inv_mass  = InitHist("inv_mass", "m_{inv}", 50, 10000, 3.e6, isdata);
   TH1F * h_sys_eta   = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
   //////////////////////////////////////////////////////////////////////////////////
 
