@@ -10,7 +10,7 @@ make
 ./run_plotDistribution.sh
 
 # Führt stackedPlots.exe aus
-./stackedPlots.exe 
+./run_stackedPlots.sh
 
 # Führt das Skript run_chiSquare.sh aus
 ./run_chiSquare.sh
