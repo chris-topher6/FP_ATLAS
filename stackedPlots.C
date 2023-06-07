@@ -38,13 +38,15 @@ struct Simulation_info {
 };
 
 
-int main() {
+int main(int argc, char* argv[]) {
   ////////////////////////////////////////////////////////////////////////////////
   // This file can guide you through the process of combining monte carlo and data
   ///////////////////////////////////////////////////////////////////////////////
 
+  string inv_mass = argv[1];
+
   // Let's say you want to have all the relevant plots in one file, this is how you create it
-  TFile * analysis = new TFile("analysis.root", "RECREATE");
+  TFile * analysis = new TFile("analysis_inv_mass.root", "RECREATE");
 
   // Deklarationen für for Schleife über zprime
   vector<string> zprime_masses= {
@@ -110,14 +112,12 @@ int main() {
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
 
-      TFile * stackedPlots = new TFile(("stackedPlots/analysis_" + zprime_mass + "_" + lepton + ".root").c_str(), "RECREATE");
-
       // now you have to get the histograms you want to use. If you have saved them in another file beforehand, you can get them this way:
       TFile * file_histogram_data = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/data." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_data = (TH1F*)file_histogram_data->Get("inv_mass");
+      TH1F * h_data = (TH1F*)file_histogram_data->Get(inv_mass.c_str());
       TDirectoryFile *dir_data = (TDirectoryFile*)file_histogram_data->Get("Histograms");
       if (dir_data) {
-        h_data = (TH1F*)dir_data->Get("inv_mass");
+        h_data = (TH1F*)dir_data->Get(inv_mass.c_str());
         if (h_data) {
           // alles erfolgreich geladen
         } else {
@@ -134,34 +134,34 @@ int main() {
     // Initialisiere Histogramme
 
       TFile * file_histogram_zprime = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/zprime" + zprime_mass + "." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_zprime = (TH1F*)file_histogram_zprime->Get("inv_mass");
+      TH1F * h_zprime = (TH1F*)file_histogram_zprime->Get(inv_mass.c_str());
       TDirectoryFile *dir_zprime = (TDirectoryFile*)file_histogram_zprime->Get("Histograms");
-      h_zprime = (TH1F*)dir_zprime->Get("inv_mass");
+      h_zprime = (TH1F*)dir_zprime->Get(inv_mass.c_str());
 
       TFile * file_histogram_diboson = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/diboson." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_diboson = (TH1F*)file_histogram_diboson->Get("inv_mass");
+      TH1F * h_diboson = (TH1F*)file_histogram_diboson->Get(inv_mass.c_str());
       TDirectoryFile *dir_diboson = (TDirectoryFile*)file_histogram_diboson->Get("Histograms");
-      h_diboson = (TH1F*)dir_diboson->Get("inv_mass");
+      h_diboson = (TH1F*)dir_diboson->Get(inv_mass.c_str());
 
       TFile * file_histogram_singletop = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/singletop." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_singletop = (TH1F*)file_histogram_singletop->Get("inv_mass");
+      TH1F * h_singletop = (TH1F*)file_histogram_singletop->Get(inv_mass.c_str());
       TDirectoryFile *dir_singletop = (TDirectoryFile*)file_histogram_singletop->Get("Histograms");
-      h_singletop = (TH1F*)dir_singletop->Get("inv_mass");
+      h_singletop = (TH1F*)dir_singletop->Get(inv_mass.c_str());
 
       TFile * file_histogram_ttbar = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/ttbar." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_ttbar = (TH1F*)file_histogram_ttbar->Get("inv_mass");
+      TH1F * h_ttbar = (TH1F*)file_histogram_ttbar->Get(inv_mass.c_str());
       TDirectoryFile *dir_ttbar = (TDirectoryFile*)file_histogram_ttbar->Get("Histograms");
-      h_ttbar = (TH1F*)dir_ttbar->Get("inv_mass");
+      h_ttbar = (TH1F*)dir_ttbar->Get(inv_mass.c_str());
 
       TFile * file_histogram_wjets = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/wjets." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_wjets = (TH1F*)file_histogram_wjets->Get("inv_mass");
+      TH1F * h_wjets = (TH1F*)file_histogram_wjets->Get(inv_mass.c_str());
       TDirectoryFile *dir_wjets = (TDirectoryFile*)file_histogram_wjets->Get("Histograms");
-      h_wjets = (TH1F*)dir_wjets->Get("inv_mass");
+      h_wjets = (TH1F*)dir_wjets->Get(inv_mass.c_str());
 
       TFile * file_histogram_zjets = new TFile(("/net/e4-nfs-home.e4.physik.tu-dortmund.de/home/photon/Breitfeld_Knospe_26-04-23/plots/zjets." + lepton + "_selected_plots.root").c_str());
-      TH1F * h_zjets = (TH1F*)file_histogram_zjets->Get("inv_mass");
+      TH1F * h_zjets = (TH1F*)file_histogram_zjets->Get(inv_mass.c_str());
       TDirectoryFile *dir_zjets = (TDirectoryFile*)file_histogram_zjets->Get("Histograms");
-      h_zjets = (TH1F*)dir_zjets->Get("inv_mass");
+      h_zjets = (TH1F*)dir_zjets->Get(inv_mass.c_str());
 
       //If you want to scale the histogram, use Scale(float factor)
       //If you want to adjust the bin width, use Rebin(int number_of_bins_to_be_merged)
@@ -253,13 +253,10 @@ int main() {
       //For all objects you want to write to the analysis file, call Write(), e.gl
       analysis->cd();
       mcStack->Write(("mcStack_" + zprime_mass + "_" + lepton).c_str());
-      stackedPlots->cd();
-      mcStack->Write("mcStack");
-      h_sum->Write("mcsum");
-      
+      h_sum->Write(("h_sum_" + zprime_mass + "_" + lepton).c_str());      
 
       // Save the canvas as a PDF file
-      PlotStack("stackedPlots/stackedPlot_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
+      PlotStack("stackedPlots/stackedPlot_" + inv_mass + "_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
 
       //End the programm properly by deleting all dynamic instances
       file_histogram_data->Close();
@@ -273,7 +270,6 @@ int main() {
       delete file_histogram_zjets;
       delete leg;
       delete c;
-      delete stackedPlots;
 
     }
   }
@@ -327,9 +323,3 @@ void PlotStack(TString filename, TString varUnit, THStack* mc, TH1F * data, TLeg
   canv->Print(filename);
   delete canv;
 }
-
-
-
-
-
-
