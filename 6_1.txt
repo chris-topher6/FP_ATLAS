@@ -5,6 +5,7 @@
         "mu_eff": 0.0792204, 
         "el_eff": 0.0818268, 
         "xsec[pb]": 0.012, 
+        "scalefactor": 0.00012, 
         "Events": 100000
     }, 
     "zprime500": {
@@ -13,6 +14,7 @@
         "mu_eff": 0.091414, 
         "el_eff": 0.0922655, 
         "xsec[pb]": 82, 
+        "scalefactor": 0.82, 
         "Events": 100000
     }, 
     "zprime2250": {
@@ -21,6 +23,7 @@
         "mu_eff": 0.0776261, 
         "el_eff": 0.0675676, 
         "xsec[pb]": 0.067, 
+        "scalefactor": 0.00067, 
         "Events": 100000
     }, 
     "diboson": {
@@ -29,6 +32,7 @@
         "mu_eff": 0.000343372, 
         "el_eff": 0.000340015, 
         "xsec[pb]": 29.41, 
+        "scalefactor": 0.03188003308325772, 
         "Events": 922521
     }, 
     "zprime2500": {
@@ -37,6 +41,7 @@
         "mu_eff": 0.072254, 
         "el_eff": 0.0644975, 
         "xsec[pb]": 0.035, 
+        "scalefactor": 0.00035, 
         "Events": 100000
     }, 
     "zprime2000": {
@@ -45,6 +50,7 @@
         "mu_eff": 0.0725922, 
         "el_eff": 0.0789258, 
         "xsec[pb]": 0.14, 
+        "scalefactor": 0.0014, 
         "Events": 100000
     }, 
     "zprime750": {
@@ -53,6 +59,7 @@
         "mu_eff": 0.105572, 
         "el_eff": 0.112082, 
         "xsec[pb]": 20, 
+        "scalefactor": 0.2, 
         "Events": 100000
     }, 
     "wjets": {
@@ -61,6 +68,7 @@
         "mu_eff": 3.63574e-05, 
         "el_eff": 3.21524e-05, 
         "xsec[pb]": 36214, 
+        "scalefactor": 0.544274966498699, 
         "Events": 66536222
     }, 
     "zprime1500": {
@@ -69,6 +77,7 @@
         "mu_eff": 0.0886479, 
         "el_eff": 0.0894819, 
         "xsec[pb]": 0.83, 
+        "scalefactor": 0.0083, 
         "Events": 100000
     }, 
     "zprime1750": {
@@ -77,6 +86,7 @@
         "mu_eff": 0.0833515, 
         "el_eff": 0.0861025, 
         "xsec[pb]": 0.3, 
+        "scalefactor": 0.003, 
         "Events": 100000
     }, 
     "zprime400": {
@@ -85,6 +95,7 @@
         "mu_eff": 0.076198, 
         "el_eff": 0.0814293, 
         "xsec[pb]": 110, 
+        "scalefactor": 1.1, 
         "Events": 100000
     }, 
     "ttbar": {
@@ -93,6 +104,7 @@
         "mu_eff": 0.0875682, 
         "el_eff": 0.0891593, 
         "xsec[pb]": 252.82, 
+        "scalefactor": 0.03221480683348403, 
         "Events": 7847944
     }, 
     "zjets": {
@@ -101,6 +113,7 @@
         "mu_eff": 9.96603e-05, 
         "el_eff": 0.000187218, 
         "xsec[pb]": 2516.2, 
+        "scalefactor": 0.06723685903127938, 
         "Events": 37422926
     }, 
     "singletop": {
@@ -109,6 +122,7 @@
         "mu_eff": 0.016836, 
         "el_eff": 0.0166798, 
         "xsec[pb]": 52.47, 
+        "scalefactor": 0.03571958593327715, 
         "Events": 1468942
     }, 
     "zprime1000": {
@@ -117,6 +131,7 @@
         "mu_eff": 0.111189, 
         "el_eff": 0.106997, 
         "xsec[pb]": 5.5, 
+        "scalefactor": 0.055, 
         "Events": 100000
     }, 
     "zprime1250": {
@@ -125,6 +140,7 @@
         "mu_eff": 0.102919, 
         "el_eff": 0.104239, 
         "xsec[pb]": 1.9, 
+        "scalefactor": 0.019, 
         "Events": 100000
     }
 }

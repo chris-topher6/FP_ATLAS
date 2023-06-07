@@ -110,11 +110,11 @@ for file_path in filenames:
 
 # calculate the number of expected events N for each process (background processes and zprime hypotheses)
 
-L = 1000 # 1 fb^-1 in pb^-1, since the cross sections are given in pb
+L = float(1000) # 1 fb^-1 in pb^-1, since the cross sections are given in pb
 
 for process in bg_processes:
 
-    sigma = bg_processes[process]["xsec[pb]"]
+    sigma = float(bg_processes[process]["xsec[pb]"])
 
     # expected events in the mu data set
     A_x_eps = bg_processes[process]["mu_eff"]
@@ -124,12 +124,48 @@ for process in bg_processes:
     A_x_eps = bg_processes[process]["el_eff"]
     bg_processes[process]["N_el"] = L * sigma * (A_x_eps)
 
-# print(bg_processes)
+    # scalefactor
+    bg_processes[process]["scalefactor"] = L * sigma / (bg_processes[process]["Events"])
+
 
 # save the dictionary to a .txt file
 json_data = json.dumps(bg_processes, indent=4)
 
 with open("6_1.txt", 'w') as file:
+
     file.write(json_data)
 
     print("saved to 6_1.txt")
+
+# saving the scale factors
+
+zprime_masses = [   "400",
+                    "500",
+                    "750",
+                    "1000",
+                    "1250",
+                    "1500",
+                    "1750",
+                    "2000",
+                    "2250",
+                    "2500",
+                    "3000"]
+
+with open("scale_test.txt", 'w') as file:
+
+    file.write(str(bg_processes['diboson']['scalefactor']))
+    file.write("\n")
+    file.write(str(bg_processes['singletop']['scalefactor']))
+    file.write("\n")
+    file.write(str(bg_processes['ttbar']['scalefactor']))
+    file.write("\n")
+    file.write(str(bg_processes['wjets']['scalefactor']))
+    file.write("\n")
+    file.write(str(bg_processes['zjets']['scalefactor']))
+
+    for mass in zprime_masses:
+        file.write("\n")
+        file.write(str(bg_processes["zprime" + mass]['scalefactor']))
+        
+
+    print("saved to scale_test.txt")
