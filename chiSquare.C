@@ -31,14 +31,10 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 	////////////////////////////////////////////////////////////////////////////
 
     // Get the file paths from the command-line arguments
-    string dataFilePath = argv[1];
-    string mcFilePath = argv[2];
-
-	// extract string for pdf name
-    size_t lastSlashIndex = mcFilePath.find_last_of("/");
-    string fileName = mcFilePath.substr(lastSlashIndex + 1);
-    size_t firstDotIndex = fileName.find_first_of(".");
-    string extractedString = fileName.substr(0, firstDotIndex);
+	string lepton = argv[1];
+	string inv_mass = argv[2];
+	string dataFilePath = ("plots/data." + lepton + "_selected_plots.root").c_str();
+	string mcFilePath   = "analysis.root";
 
     // Open the data file
     TFile* dataFile = new TFile(dataFilePath.c_str(), "READ");
@@ -49,9 +45,9 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
     }
 
     // Get the data histogram from the file
-    TH1F* dataHistogram = static_cast<TH1F*>(dataFile->Get("inv_mass"));
+    TH1F* dataHistogram = static_cast<TH1F*>(dataFile->Get(inv_mass.c_str()));
     TDirectoryFile *dir_data = (TDirectoryFile*)dataFile->Get("Histograms");
-	dataHistogram = (TH1F*)dir_data->Get("inv_mass");
+	dataHistogram = (TH1F*)dir_data->Get(inv_mass.c_str());
     if (!dataHistogram)
     {
         cout << "Error retrieving data histogram from the file." << endl;
@@ -67,31 +63,41 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
         return 1;
     }
 
-    // Get the Monte Carlo histogram from the file
-    TH1F* mcHistogram = static_cast<TH1F*>(mcFile->Get("mcsum"));
 
-    if (!mcHistogram)
-    {
-        cout << "Error retrieving Monte Carlo histogram from the file." << endl;
-        return 1;
-    }
+	vector<string> masses= {
+    	"400",
+    	"500",
+    	"750",
+    	"1000",
+    	"1250",
+    	"1500",
+    	"1750",
+    	"2000",
+    	"2250",
+    	"2500",
+    	"3000",
+  	};
 
-	cout << "It lives!" << endl;
-
-
-
-	// Once you finished calculating your limits, you want to plot them
-	// Start with arrays of the mass, the expected cross section and the limits you calculated
-	// The mass array has already be filled for you in order to remind you of the use of arrays
 	float mass[11] = {400.,500.,750.,1000.,1250.,1500.,1750.,2000.,2250.,2500.,3000};
 	float expectedXsec[11] = {1.1e2, 8.2e1, 2.0e1, 5.5, 1.9, 8.3e-1, 3.0e-1, 1.4e-1, 6.7e-2, 3.5e-2, 1.2e-2};
 	float limitXsec[11];
-	float chiSquare = chisquareNBins(dataHistogram, mcHistogram);
-	int dof = dataHistogram->GetNbinsX() - 1;  // #Freiheitsgrade= #Bins - 1
-	// Berechne das kritische Chi-Quadrat-Quantil für 95% Konfidenz und Freiheitsgrade
-	float criticalValue = TMath::ChisquareQuantile(0.95, dof);
-	for (int i = 0; i < 11; i++) {
-	  limitXsec[i] = expectedXsec[i] * chiSquare / criticalValue;
+
+	for (size_t m = 0; m < masses.size(); m++){
+   		// Get the Monte Carlo histogram from the file
+	    TH1F* mcHistogram  = static_cast<TH1F*>(mcFile->Get(("h_sum_" + masses[m] + "_" + lepton).c_str()));
+
+    	if (!mcHistogram){
+    	    cout << "Error retrieving Monte Carlo histogram from the file." << endl;
+    	    return 1;
+    	}
+
+		float chiSquare = chisquareNBins(dataHistogram, mcHistogram);
+		int dof = dataHistogram->GetNbinsX() - 1;  // #Freiheitsgrade= #Bins - 1
+		float criticalValue = TMath::ChisquareQuantile(0.95, dof);
+
+		limitXsec[m] = expectedXsec[m] * chiSquare / criticalValue;
+		cout << "limit: " << limitXsec[m] << endl;
+
 	}
 
 
@@ -107,7 +113,7 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 
 	//Create a TGraph with you limits
 	TGraph * g_limits = new TGraph(11, mass, limitXsec);
-	
+
 	//The TH1D is only to have axes to you plot
 	TH1D * h_helper = new TH1D("h_helper", "just an empty helper histogram", 1, 400., 3000.);
 	h_helper->SetMaximum(270);
@@ -123,13 +129,12 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
   	l->SetTextAlign(12);
   	l->AddEntry(g_expected, "Expected #sigma_{Z'}#timesBR(Z'#rightarrow t#bar{t})", "l");
   	l->AddEntry(g_limits, "Observed 95% CL upper limit (100 pb^{-1})", "l");
-  	
+
   	g_expected->Draw("l SAME"); 
   	g_limits->Draw("l SAME");
   	l->Draw();
   	c_limits->SetLogy();
-  	c_limits->Print(("limits/limits_" + extractedString + ".pdf").c_str());
-	
+  	c_limits->Print(("limits/limits_" +inv_mass + "_" + lepton + ".pdf").c_str());
 
 	return 0;
 
