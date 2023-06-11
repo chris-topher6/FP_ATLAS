@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
   string inv_mass = argv[1];
 
   // Let's say you want to have all the relevant plots in one file, this is how you create it
-  TFile * analysis = new TFile("analysis_inv_mass.root", "RECREATE");
+  TFile * analysis = new TFile(("stackedPlots/analysis_" + inv_mass + ".root").c_str(), "RECREATE");
 
   // Deklarationen für for Schleife über zprime
   vector<string> zprime_masses= {
