@@ -76,12 +76,12 @@ int main(int argn, char *argv[]) {
   TH1F * h_lep_pt  = InitHist("lep_pt","p_{T}(l) [MeV]",100,0,140.e3,isdata);
   TH1F * h_lep_eta = InitHist("lep_eta", "#eta(l)", 100, -2.5, 2.5, isdata);
   TH1F * h_lep_phi = InitHist("lep_phi", "#phi(l)", 100, -3.2, 3.2, isdata);
-  TH1F * h_lep_E   = InitHist("lep_E", "#E(l)", 100, 0, 400.e3, isdata);
+  TH1F * h_lep_E   = InitHist("lep_E", "#E(l) [MeV]", 100, 0, 400.e3, isdata);
 
   TH1F * h_jet_pt  = InitHist("jet_pt","p_{T}(j) [MeV]",100,0,180.e3,isdata);
   TH1F * h_jet_eta = InitHist("jet_eta", "#eta(j)", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi = InitHist("jet_phi", "#phi(j)", 100, -3.2, 3.2, isdata);
-  TH1F * h_jet_E   = InitHist("jet_E", "E(l)", 100, 0, 450.e3, isdata);
+  TH1F * h_jet_E   = InitHist("jet_E", "E(l) [MeV]", 100, 0, 450.e3, isdata);
 
   TH1F * h_jet_good_n = InitHist("jet_good_count", "Number of good Jets", 5, 0, 5, isdata);
   TH1F * h_bjet_n     = InitHist("bjet_count", "Number of b-Jets", 5, 0, 5, isdata);
@@ -89,15 +89,15 @@ int main(int argn, char *argv[]) {
   TH1F * h_jet_pt_max  = InitHist("jet_pt_max", "p_{T}(j_{max}) [MeV]", 100, 0, 180.e3, isdata);
   TH1F * h_jet_eta_max = InitHist("jet_eta_max", "#eta(j_{max})", 100, -2.5, 2.5, isdata);
   TH1F * h_jet_phi_max = InitHist("jet_phi_max", "#phi(j_{max})", 100, -3.2, 3.2, isdata);
-  TH1F * h_jet_E_max   = InitHist("jet_E_max", "E(j_{max})", 100, 0, 450.e3, isdata);
+  TH1F * h_jet_E_max   = InitHist("jet_E_max", "E(j_{max}) [MeV]", 100, 0, 450.e3, isdata);
 
 
   TH1F * h_met_et   = InitHist("met_et", "#p_{miss} [MeV]", 100, 0, 150.e3, isdata);
   TH1F * h_met_phi  = InitHist("met_phi", "#phi_{miss}", 100, -3.2, 3.2, isdata);
 
   TH1F * h_deltaPhi  = InitHist("deltaPhi", "#delta #phi(E_{T}^{miss},l)", 100, 0, 3.2, isdata);
-  TH1F * h_inv_mass3 = InitHist("inv_mass_3jet", "m_{inv}(3j)", 100, 0, 3.e6, isdata);
-  TH1F * h_inv_mass  = InitHist("inv_mass_sys", "m_{inv}", 100, 10000, 3.e6, isdata);
+  TH1F * h_inv_mass3 = InitHist("inv_mass_3jet", "m_{reco}(3 jets) [MeV]", 100, 0, 3.e6, isdata);
+  TH1F * h_inv_mass  = InitHist("inv_mass_sys", "m_{reco} (t#bar{t}) [MeV]", 100, 0, 3.e6, isdata);
   TH1F * h_sys_eta   = InitHist("sys_eta", "#eta_{total}", 100, -2.5, 2.5, isdata);
   //////////////////////////////////////////////////////////////////////////////////
 
