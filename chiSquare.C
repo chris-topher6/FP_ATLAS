@@ -34,7 +34,7 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 	string lepton = argv[1];
 	string inv_mass = argv[2];
 	string dataFilePath = ("plots/data." + lepton + "_selected_plots.root").c_str();
-	string mcFilePath   = "analysis.root";
+	string mcFilePath   = "stackedPlots/analysis_" + inv_mass + ".root";
 
     // Open the data file
     TFile* dataFile = new TFile(dataFilePath.c_str(), "READ");
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 	TH1D * h_helper = new TH1D("h_helper", "just an empty helper histogram", 1, 400., 3000.);
 	h_helper->SetMaximum(270);
 	h_helper->GetXaxis()->SetTitle("m_{Z\'} [GeV]"); 
-  	h_helper->GetYaxis()->SetTitle("#sigma_{Z'}#timesBR(Z'#rightarrow t#bar{t}) [pb]"); // don't forget the axis titles !
+  	h_helper->GetYaxis()->SetTitle("#sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t}) [pb]"); // don't forget the axis titles !
   	h_helper->Draw("p");
 
 	// create a legend
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
   	l->SetBorderSize(0);
   	l->SetTextSize(0.04);
   	l->SetTextAlign(12);
-  	l->AddEntry(g_expected, "Expected #sigma_{Z'}#timesBR(Z'#rightarrow t#bar{t})", "l");
+  	l->AddEntry(g_expected, "Expected #sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t})", "l");
   	l->AddEntry(g_limits, "Observed 95% CL upper limit (100 pb^{-1})", "l");
 
   	g_expected->Draw("l SAME"); 
@@ -163,6 +163,27 @@ float chisquareNBins(TH1F * data, TH1F * mc){
 	return chisquare_test;
 
 }
+
+bool CheckBinning(TH1F* hist1, TH1F* hist2)
+{
+    if (hist1->GetNbinsX() != hist2->GetNbinsX())
+    {
+        cout << "Error: Number of bins is different between the histograms." << endl;
+        return false;
+    }
+
+    for (int i = 1; i <= hist1->GetNbinsX(); i++)
+    {
+        if (hist1->GetBinLowEdge(i) != hist2->GetBinLowEdge(i) || hist1->GetBinWidth(i) != hist2->GetBinWidth(i))
+        {
+            cout << "Error: Binning is different between the histograms." << endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 
 void SetStyle() {
