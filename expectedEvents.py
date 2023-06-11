@@ -110,7 +110,7 @@ for file_path in filenames:
 
 # calculate the number of expected events N for each process (background processes and zprime hypotheses)
 
-L = float(1000) # 1 fb^-1 in pb^-1, since the cross sections are given in pb
+L = float(1000) # pb^-1
 
 for process in bg_processes:
 
