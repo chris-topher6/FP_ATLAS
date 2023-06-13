@@ -14,3 +14,6 @@ make
 
 # Führt das Skript run_chiSquare.sh aus
 ./run_chiSquare.sh
+
+# Führt das Skript evidence_observation_plots.py aus 
+python evidence_observation_plots.py

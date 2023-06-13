@@ -10,6 +10,7 @@
 #include "TLegend.h"
 #include <cmath>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -43,10 +44,16 @@ int main(int argc, char* argv[]) {
   // This file can guide you through the process of combining monte carlo and data
   ///////////////////////////////////////////////////////////////////////////////
 
+  if (argc < 3) {
+    cout << "Zu wenige Argumente. Bitte geben Sie einen Integer-Wert an." << endl;
+    return 1;  
+  }
+
   string inv_mass = argv[1];
+  int scale_zprime_xsec = stod(argv[2]);
 
   // Let's say you want to have all the relevant plots in one file, this is how you create it
-  TFile * analysis = new TFile(("stackedPlots/analysis_" + inv_mass + ".root").c_str(), "RECREATE");
+  TFile * analysis = new TFile(("stackedPlots/analysis_" + to_string(scale_zprime_xsec) + "_" + inv_mass + ".root").c_str(), "RECREATE");
 
   // Deklarationen für for Schleife über zprime
   vector<string> zprime_masses= {
@@ -66,22 +73,22 @@ int main(int argc, char* argv[]) {
   // Werte für Berechnungen der Skalierungsfaktoren
   int L = 1000;
   vector<Simulation_info> simulation_info = {
-      {29.41, 922521},    //diboson
-      {52.47, 1468942},   //singletop
-      {252.82, 7847944},  //ttbar
-      {36214, 66536222},  //wjet
-      {2516.2, 37422926}, //zjet
-      {110.0, 100000},    //zprime400
-      {82.0, 100000},     //zprime500
-      {20.0, 100000},     //zprime750
-      { 5.5, 100000},     //zprime1000
-      { 1.9, 100000},     //zprime1250
-      { 0.83, 100000},    //zprime1500
-      { 0.3, 100000},     //zprime1750  
-      { 0, 100000},       //zprime2000
-      { 0.067, 100000},   //zprime2250
-      { 0.035, 100000},   //zprime2500
-      { 0.012, 100000}    //zprime3000
+      {29.41 , 922521},                     //diboson
+      {52.47 , 1468942},                    //singletop
+      {252.82, 7847944},                    //ttbar
+      {36214 , 66536222},                   //wjet
+      {2516.2, 37422926},                   //zjet
+      {110.0 *scale_zprime_xsec, 100000},   //zprime400
+      {82.0  *scale_zprime_xsec, 100000},   //zprime500
+      {20.0  *scale_zprime_xsec, 100000},   //zprime750
+      { 5.5  *scale_zprime_xsec, 100000},   //zprime1000
+      { 1.9  *scale_zprime_xsec, 100000},   //zprime1250
+      { 0.83 *scale_zprime_xsec, 100000},   //zprime1500
+      { 0.3  *scale_zprime_xsec, 100000},   //zprime1750  
+      { 0.14 *scale_zprime_xsec, 100000},   //zprime2000
+      { 0.067*scale_zprime_xsec, 100000},   //zprime2250
+      { 0.035*scale_zprime_xsec, 100000},   //zprime2500
+      { 0.012*scale_zprime_xsec, 100000}    //zprime3000
   };
   vector<double> w;
   for (const auto& info : simulation_info) {
@@ -101,13 +108,7 @@ int main(int argc, char* argv[]) {
     float scaleFactor_ttbar      = w[2];
     float scaleFactor_wjets      = w[3];
     float scaleFactor_zjets      = w[4];
-    float scaleFactor_zprime     = w[5+idx1];
-    cout << "diboson  : " << scaleFactor_diboson   << endl;
-    cout << "singletop: " << scaleFactor_singletop << endl;
-    cout << "ttbar    : " << scaleFactor_ttbar     << endl;
-    cout << "wjets    : " << scaleFactor_wjets     << endl;
-    cout << "zjets    : " << scaleFactor_zjets     << endl;
-    cout << "zprime   : " << scaleFactor_zprime    << endl;    
+    float scaleFactor_zprime     = w[5+idx1]; 
     idx1++;
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
@@ -256,7 +257,7 @@ int main(int argc, char* argv[]) {
       h_sum->Write(("h_sum_" + zprime_mass + "_" + lepton).c_str());      
 
       // Save the canvas as a PDF file
-      PlotStack("stackedPlots/stackedPlot_" + inv_mass + "_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
+      PlotStack("stackedPlots/stackedPlot_" + to_string(scale_zprime_xsec) + "_" + inv_mass + "_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
 
       //End the programm properly by deleting all dynamic instances
       file_histogram_data->Close();

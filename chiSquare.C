@@ -7,6 +7,7 @@
 #include "TGraph.h"
 #include "TStyle.h"
 #include "TLegend.h"
+#include <fstream>
 
 
 using namespace std;
@@ -29,12 +30,157 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 	//		  2. calculate limits to the cross section of Z' production
 	//
 	////////////////////////////////////////////////////////////////////////////
+	cout << "Hallo" << endl;
+
+	if (argc < 3) {
+    	cout << "Zu wenige Argumente. Bitte geben Sie einen Integer-Wert an." << endl;
+    	return 1;  
+  	}
 
     // Get the file paths from the command-line arguments
 	string lepton = argv[1];
 	string inv_mass = argv[2];
+	//int scale_zprime_xsec = stoi(argv[3]);
+
+	ofstream outputFile1("limits/Evidence_"    + inv_mass + "_" + lepton + ".txt");
+	ofstream outputFile2("limits/Observation_" + inv_mass + "_" + lepton + ".txt");
+	if (!outputFile1 or !outputFile2) {
+        std::cout << "Fehler beim Öffnen der Datei." << std::endl;
+        return 1;
+    }
+	outputFile1 << "Evidence"	  << endl << "p-value,	mass,	xsec" << endl;
+	outputFile2 << "Observation"  << endl << "p-value,	mass,	xsec" << endl;
+
+
+//	vector<double> scale_zprime_xsecs = {0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0};
+	vector<int> scale_zprime_xsecs = {1,
+									  2,
+									  3,
+									  4,
+									  5,
+									  6,
+									  7,
+									  8,
+									  9,
+									  10,
+									  12,
+									  14,
+									  16,
+									  18,
+									  20,
+									  25,
+									  30,
+									  35,
+									  40,
+									  45,
+									  50,
+									  55,
+									  60,
+									  65,
+									  70,
+									  75,
+									  80,
+									  85,
+									  90,
+									  95,
+									  100,
+									  110,
+									  120,
+									  130,
+									  140,
+									  150,
+									  160,
+									  170,
+									  180,
+									  190,
+									  200,
+									  210,
+									  220,
+									  230,
+									  240,
+									  250,
+									  260,
+									  270,
+									  280,
+									  290,
+									  300,
+									  325,
+									  350,
+									  375,
+									  400,
+									  425,
+									  450,
+									  475,
+									  500,
+									  525,
+									  550,
+									  575,
+									  600,
+									  625,
+									  650,
+									  675,
+									  700,
+									  725,
+									  750,
+									  775,
+									  800,
+									  825,
+									  850,
+									  875,
+									  900,
+									  925,
+									  950,
+									  975,
+									  1000,
+									  1150,
+									  1100,
+									  1200,
+									  1250,
+									  1300,
+									  1350,
+									  1400,
+									  1450,
+									  1500,
+									  1600,
+									  1700,
+									  1800,
+									  1900,
+									  2000,
+									  2250,
+									  2500,
+									  2750,
+									  3000,
+									  3250,
+									  3500,
+									  3750,
+									  4000,
+									  4250,
+									  4500,
+									  4750,
+									  5000,
+									  5250,
+									  5500,
+									  5750,
+									  6000,
+									  6250,
+									  6500,
+									  6750,
+									  7000,
+									  7250,
+									  7500,
+									  7750,
+									  8000,
+									  8250,
+									  8500,
+									  8750,
+									  9000};
+	vector<string> loadedMasses_Evidence;
+	vector<string> loadedMasses_Observation;
+
+	for (const auto& scale_zprime_xsec : scale_zprime_xsecs) {
+
 	string dataFilePath = ("plots/data." + lepton + "_selected_plots.root").c_str();
-	string mcFilePath   = "stackedPlots/analysis_" + inv_mass + ".root";
+	string mcFilePath   = "stackedPlots/analysis_" + to_string(scale_zprime_xsec) + "_" + inv_mass + ".root";
 
     // Open the data file
     TFile* dataFile = new TFile(dataFilePath.c_str(), "READ");
@@ -93,49 +239,79 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 
 		float chiSquare = chisquareNBins(dataHistogram, mcHistogram);
 		int dof = dataHistogram->GetNbinsX() - 1;  // #Freiheitsgrade= #Bins - 1
-		float criticalValue = TMath::ChisquareQuantile(0.95, dof);
 
+		// pValue
+    	float pValue = TMath::Prob(chiSquare, dof);
+
+    	if (pValue < 2.7e-3 && pValue > 5.7e-7) {
+			if (find(loadedMasses_Evidence.begin(), loadedMasses_Evidence.end(),masses[m]) == loadedMasses_Evidence.end()) {
+    	    	outputFile1 << pValue << "\t" << masses[m] << "\t" << scale_zprime_xsec << endl;
+				loadedMasses_Evidence.push_back(masses[m]);
+			}
+    	} else if (pValue < 5.7e-7) {
+			if (find(loadedMasses_Observation.begin(), loadedMasses_Observation.end(),masses[m]) == loadedMasses_Observation.end()) {
+	    	    outputFile2 << pValue << "\t" << masses[m] << "\t" << scale_zprime_xsec << endl;
+				loadedMasses_Observation.push_back(masses[m]);
+			}
+		}
+		else{
+		}
+		
+		// limit
+		float criticalValue = TMath::ChisquareQuantile(0.95, dof);
 		limitXsec[m] = expectedXsec[m] * chiSquare / criticalValue;
-		cout << "limit: " << limitXsec[m] << endl;
+		// cout << "limit: " << limitXsec[m] << endl;
 
 	}
 
+	if(scale_zprime_xsec == 1.0){
+		// Create a canvas
+		SetStyle();
+		TCanvas * c_limits = new TCanvas("c_limits", "canvas for limit plot", 1);
+		// If you want to, use a logarithmic y axis 
+	  	c_limits->SetLogy();
 
-	// Create a canvas
-	SetStyle();
-	TCanvas * c_limits = new TCanvas("c_limits", "canvas for limit plot", 1);
-	// If you want to, use a logarithmic y axis 
-  	c_limits->SetLogy();
+		// Create a TGraph for the expected cross section
+		TGraph * g_expected = new TGraph(11, mass, expectedXsec);
+		g_expected->SetLineColor(kBlue);
 
-	// Create a TGraph for the expected cross section
-	TGraph * g_expected = new TGraph(11, mass, expectedXsec);
-	g_expected->SetLineColor(kBlue);
+		//Create a TGraph with you limits
+		TGraph * g_limits = new TGraph(11, mass, limitXsec);
 
-	//Create a TGraph with you limits
-	TGraph * g_limits = new TGraph(11, mass, limitXsec);
+		//The TH1D is only to have axes to you plot
+		TH1D * h_helper = new TH1D("h_helper", "just an empty helper histogram", 1, 400., 3000.);
+		h_helper->SetMaximum(270);
+		h_helper->GetXaxis()->SetTitle("m_{Z\'} [GeV]"); 
+	  	h_helper->GetYaxis()->SetTitle("#sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t}) [pb]"); // don't forget the axis titles !
+	  	h_helper->Draw("p");
 
-	//The TH1D is only to have axes to you plot
-	TH1D * h_helper = new TH1D("h_helper", "just an empty helper histogram", 1, 400., 3000.);
-	h_helper->SetMaximum(270);
-	h_helper->GetXaxis()->SetTitle("m_{Z\'} [GeV]"); 
-  	h_helper->GetYaxis()->SetTitle("#sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t}) [pb]"); // don't forget the axis titles !
-  	h_helper->Draw("p");
+		// create a legend
+		TLegend * l = new TLegend(0.35, 0.7, 0.9, 0.8, "");
+	  	l->SetFillColor(0);
+	  	l->SetBorderSize(0);
+	  	l->SetTextSize(0.04);
+	  	l->SetTextAlign(12);
+	  	l->AddEntry(g_expected, "Expected #sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t})", "l");
+	  	l->AddEntry(g_limits, "Observed 95% CL upper limit (100 pb^{-1})", "l");
 
-	// create a legend
-	TLegend * l = new TLegend(0.35, 0.7, 0.9, 0.8, "");
-  	l->SetFillColor(0);
-  	l->SetBorderSize(0);
-  	l->SetTextSize(0.04);
-  	l->SetTextAlign(12);
-  	l->AddEntry(g_expected, "Expected #sigma_{Z'}#timesBR(Z' #rightarrow t#bar{t})", "l");
-  	l->AddEntry(g_limits, "Observed 95% CL upper limit (100 pb^{-1})", "l");
+	  	g_expected->Draw("l SAME"); 
+	  	g_limits->Draw("l SAME");
+	  	l->Draw();
+	  	c_limits->SetLogy();
+	  	c_limits->Print(("limits/limits_" + inv_mass + "_" + lepton + ".pdf").c_str());
+	}
+	}
 
-  	g_expected->Draw("l SAME"); 
-  	g_limits->Draw("l SAME");
-  	l->Draw();
-  	c_limits->SetLogy();
-  	c_limits->Print(("limits/limits_" +inv_mass + "_" + lepton + ".pdf").c_str());
+	for (const auto& mass : loadedMasses_Evidence) {
+	    cout << "loadedMasses_Evidence: " << mass << endl; 
+	}
+		for (const auto& mass : loadedMasses_Observation) {
+	    cout << "loadedMasses_Observation: " << mass << endl; 
+	}
 
+	outputFile1.close();
+	outputFile2.close();
+	
 	return 0;
 
 }
@@ -157,9 +333,9 @@ float chisquareNBins(TH1F * data, TH1F * mc){
 	}
 
 
-	double ndf= double(nbinsused-1);
+	// double ndf= double(nbinsused-1);
 
-	cout << "The number of degrees of freedom is " << ndf << endl;
+	// cout << "The number of degrees of freedom is " << ndf << endl;
 	return chisquare_test;
 
 }
