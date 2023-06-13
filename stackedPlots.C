@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
   }
 
   string inv_mass = argv[1];
-  int scale_zprime_xsec = stod(argv[2]);
+  double scale_zprime_xsec = stod(argv[2]);
 
   // Let's say you want to have all the relevant plots in one file, this is how you create it
   TFile * analysis = new TFile(("stackedPlots/analysis_" + to_string(scale_zprime_xsec) + "_" + inv_mass + ".root").c_str(), "RECREATE");
