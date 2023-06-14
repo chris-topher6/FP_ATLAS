@@ -78,17 +78,17 @@ int main(int argc, char* argv[]) {
       {252.82, 7847944},                    //ttbar
       {36214 , 66536222},                   //wjet
       {2516.2, 37422926},                   //zjet
-      {110.0 *scale_zprime_xsec, 100000},   //zprime400
-      {82.0  *scale_zprime_xsec, 100000},   //zprime500
-      {20.0  *scale_zprime_xsec, 100000},   //zprime750
-      { 5.5  *scale_zprime_xsec, 100000},   //zprime1000
-      { 1.9  *scale_zprime_xsec, 100000},   //zprime1250
-      { 0.83 *scale_zprime_xsec, 100000},   //zprime1500
-      { 0.3  *scale_zprime_xsec, 100000},   //zprime1750  
-      { 0.14 *scale_zprime_xsec, 100000},   //zprime2000
-      { 0.067*scale_zprime_xsec, 100000},   //zprime2250
-      { 0.035*scale_zprime_xsec, 100000},   //zprime2500
-      { 0.012*scale_zprime_xsec, 100000}    //zprime3000
+      {110.0 /scale_zprime_xsec, 100000},   //zprime400
+      {82.0  /scale_zprime_xsec, 100000},   //zprime500
+      {20.0  /scale_zprime_xsec, 100000},   //zprime750
+      { 5.5  /scale_zprime_xsec, 100000},   //zprime1000
+      { 1.9  /scale_zprime_xsec, 100000},   //zprime1250
+      { 0.83 /scale_zprime_xsec, 100000},   //zprime1500
+      { 0.3  /scale_zprime_xsec, 100000},   //zprime1750  
+      { 0.14 /scale_zprime_xsec, 100000},   //zprime2000
+      { 0.067/scale_zprime_xsec, 100000},   //zprime2250
+      { 0.035/scale_zprime_xsec, 100000},   //zprime2500
+      { 0.012/scale_zprime_xsec, 100000}    //zprime3000
   };
   vector<double> w;
   for (const auto& info : simulation_info) {

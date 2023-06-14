@@ -234,8 +234,17 @@ int main(int argc, char* argv[]){	// console input example: ./chiSquare.exe outp
 		int dof = dataHistogram->GetNbinsX() - 1;  // #Freiheitsgrade= #Bins - 1
 
 		// pValue
-    	float pValue =  TMath::Prob(chiSquare, dof);
+    	float pValue =  1 - TMath::Prob(chiSquare, dof);
 
+		if (scale_zprime_xsec == 1){
+			if (pValue < 2.7e-3 && pValue > 5.7e-7){
+				cout << "Evidence for Zprime" << endl;
+			}
+			else if (pValue < 5.7e-7) {
+				cout << "Observation for Zprime" << endl;
+			}
+		}
+		
     	if (pValue < 2.7e-3 && pValue > 5.7e-7) {
 			if (find(loadedMasses_Evidence.begin(), loadedMasses_Evidence.end(),masses[m]) == loadedMasses_Evidence.end()) {
     	    	outputFile1 << pValue << "\t" << masses[m] << "\t" << scale_zprime_xsec << endl;
