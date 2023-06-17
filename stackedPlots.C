@@ -35,7 +35,8 @@ vector<float> LoadScalingFactors(const string& filename) {
 
 struct Simulation_info {
     double xsec;
-    int events;
+    int events_el;
+    int events_mu;
 };
 
 
@@ -44,16 +45,15 @@ int main(int argc, char* argv[]) {
   // This file can guide you through the process of combining monte carlo and data
   ///////////////////////////////////////////////////////////////////////////////
 
-  if (argc < 3) {
+  if (argc < 2) {
     cout << "Zu wenige Argumente. Bitte geben Sie einen Integer-Wert an." << endl;
     return 1;  
   }
 
   string inv_mass = argv[1];
-  double scale_zprime_xsec = stod(argv[2]);
 
   // Let's say you want to have all the relevant plots in one file, this is how you create it
-  TFile * analysis = new TFile(("stackedPlots/analysis_" + to_string(scale_zprime_xsec) + "_" + inv_mass + ".root").c_str(), "RECREATE");
+  TFile * analysis = new TFile(("stackedPlots/analysis_" + inv_mass + ".root").c_str(), "RECREATE");
 
   // Deklarationen für for Schleife über zprime
   vector<string> zprime_masses= {
@@ -71,45 +71,51 @@ int main(int argc, char* argv[]) {
   };
 
   // Werte für Berechnungen der Skalierungsfaktoren
-  int L = 1000;
+  vector<int> L = {110, 120}; // !!!ACHTUNG!!! Die Luminosität wurde händisch korrigiert, da die MC nicht zu den Daten passem! Das muss noch geändert Werden!!!
   vector<Simulation_info> simulation_info = {
-      {29.41 , 922521},                     //diboson
-      {52.47 , 1468942},                    //singletop
-      {252.82, 7847944},                    //ttbar
-      {36214 , 66536222},                   //wjet
-      {2516.2, 37422926},                   //zjet
-      {110.0 /scale_zprime_xsec, 100000},   //zprime400
-      {82.0  /scale_zprime_xsec, 100000},   //zprime500
-      {20.0  /scale_zprime_xsec, 100000},   //zprime750
-      { 5.5  /scale_zprime_xsec, 100000},   //zprime1000
-      { 1.9  /scale_zprime_xsec, 100000},   //zprime1250
-      { 0.83 /scale_zprime_xsec, 100000},   //zprime1500
-      { 0.3  /scale_zprime_xsec, 100000},   //zprime1750  
-      { 0.14 /scale_zprime_xsec, 100000},   //zprime2000
-      { 0.067/scale_zprime_xsec, 100000},   //zprime2250
-      { 0.035/scale_zprime_xsec, 100000},   //zprime2500
-      { 0.012/scale_zprime_xsec, 100000}    //zprime3000
+      {29.41 , 188227 , 230071},//922521},                     //diboson
+      {52.47 , 152640 , 180031},//1468942},                    //singletop
+      {252.82, 684191 , 816358},//7847944},                    //ttbar
+      {36214 , 6469186, 8306434},//66536222},                   //wjet
+      {2516.2, 6489769, 7826583},//37422926},                   //zjet
+      {110.0 , 8228, 10079},//100000},   //zprime400
+      {82.0  , 9115, 10622},//100000},   //zprime500
+      {20.0  , 9618, 11433},//100000},   //zprime750
+      { 5.5  , 9290, 11359},//100000},   //zprime1000
+      { 1.9  , 8586, 10688},//100000},   //zprime1250
+      { 0.83 , 7644, 10051},//100000},   //zprime1500
+      { 0.3  , 6771, 9178},//100000},   //zprime1750  
+      { 0.14 , 6107, 8348},//100000},   //zprime2000
+      { 0.067, 5402, 7987},//100000},   //zprime2250
+      { 0.035, 5194, 7529},//100000},   //zprime2500
+      { 0.012, 5255, 7132},//100000}    //zprime3000
   };
-  vector<double> w;
+  vector<float> w_el;
+  vector<float> w_mu;
   for (const auto& info : simulation_info) {
-    double weight = L * info.xsec / info.events;
-    w.push_back(weight);
+    float weight_el = L[0] * info.xsec / info.events_el;
+    w_el.push_back(weight_el);
+    float weight_mu = L[1] * info.xsec / info.events_mu;
+    w_mu.push_back(weight_mu);
+
   }
   
   
   vector<string> leptons = {"el", "mu"};
   unsigned int idx1 = 0;
 
+
   for (const auto& zprime_mass : zprime_masses){
 
     //Skalierungsfaktoren
-    float scaleFactor_diboson    = w[0]; 
-    float scaleFactor_singletop  = w[1];
-    float scaleFactor_ttbar      = w[2];
-    float scaleFactor_wjets      = w[3];
-    float scaleFactor_zjets      = w[4];
-    float scaleFactor_zprime     = w[5+idx1]; 
+    vector<float> scaleFactor_diboson    = {w_el[0]     ,w_mu[0]     }; 
+    vector<float> scaleFactor_singletop  = {w_el[1]     ,w_mu[1]     };
+    vector<float> scaleFactor_ttbar      = {w_el[2]     ,w_mu[2]     };
+    vector<float> scaleFactor_wjets      = {w_el[3]     ,w_mu[3]     };
+    vector<float> scaleFactor_zjets      = {w_el[4]     ,w_mu[4]     };
+    vector<float> scaleFactor_zprime     = {w_el[5+idx1],w_mu[5+idx1]}; 
     idx1++;
+    unsigned int idx2 = 0;
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
 
@@ -167,12 +173,13 @@ int main(int argc, char* argv[]) {
       //If you want to scale the histogram, use Scale(float factor)
       //If you want to adjust the bin width, use Rebin(int number_of_bins_to_be_merged)
 
-      h_zprime->Scale(scaleFactor_zprime);
-      h_diboson->Scale(scaleFactor_diboson);
-      h_singletop->Scale(scaleFactor_singletop);
-      h_ttbar->Scale(scaleFactor_ttbar);
-      h_wjets->Scale(scaleFactor_wjets);
-      h_zjets->Scale(scaleFactor_zjets);
+      h_zprime->Scale(scaleFactor_zprime[idx2]);
+      h_diboson->Scale(scaleFactor_diboson[idx2]);
+      h_singletop->Scale(scaleFactor_singletop[idx2]);
+      h_ttbar->Scale(scaleFactor_ttbar[idx2]);
+      h_wjets->Scale(scaleFactor_wjets[idx2]);
+      h_zjets->Scale(scaleFactor_zjets[idx2]);
+      idx2++;
 
 
       //You should set a different fill color for each process using SetFillColor(Color_t fcolor); examples for fcolor are kRed, kGreen, kYellow etc. 
@@ -223,20 +230,33 @@ int main(int argc, char* argv[]) {
       double xmax = 1000000.0;  // Obere Grenze des Binning-Bereichs
 
       // Erstellen des Summen-Histogramms
-      TH1F *h_sum = new TH1F("Sum", "Sum of MC", nbins, xmin, xmax);
+      TH1F *h_bg = new TH1F("BGonly", "BG", nbins, xmin, xmax);
+      TH1F *h_bgZ = new TH1F("BGZprime", "BGZ", nbins, xmin, xmax);
 
-      // Berechnung der Summe der gestapelten Simulationen
-      for (int i = 1; i <= nbins; i++)
-      {
-          double sumContent = 0.0;
-          for (int j = 0; j < mcStack->GetHists()->GetEntries(); j++)
-          {
-              TH1F *hist = dynamic_cast<TH1F *>(mcStack->GetHists()->At(j));
-              sumContent += hist->GetBinContent(i);
-          }
-          h_sum->SetBinContent(i, sumContent);
-      }
-      h_sum->Draw();
+    // Berechnung der Summe der gestapelten Simulationen OHNE Z'
+    for (int i = 1; i <= nbins; i++){
+        double sumContent = 0.0;
+        for (int j = 0; j < mcStack->GetHists()->GetEntries(); j++){
+            TH1F *hist = dynamic_cast<TH1F *>(mcStack->GetHists()->At(j));
+        if (hist != h_zprime)  // Ausschluss von h_zprime
+        {
+            sumContent += hist->GetBinContent(i);
+        }
+        }
+        h_bg->SetBinContent(i, sumContent);
+    }
+    h_bg->Draw();
+
+    // Berechnung der Summe der gestapelten Simulationen MIT Z'
+    for (int i = 1; i <= nbins; i++){
+        double sumContent = 0.0;
+        for (int j = 0; j < mcStack->GetHists()->GetEntries(); j++){
+            TH1F *hist = dynamic_cast<TH1F *>(mcStack->GetHists()->At(j));
+            sumContent += hist->GetBinContent(i);
+        }
+        h_bgZ->SetBinContent(i, sumContent);
+    }
+    h_bgZ->Draw();
 
 
       //For histograms of data, you can use the following commands to change the attributes of the histobramm
@@ -246,7 +266,7 @@ int main(int argc, char* argv[]) {
       h_data->SetMarkerSize(1);
       h_data->SetMarkerColor(kBlack);
 
-     //For plotting data and stacked MC, you can use the function PlotStack at the end of this file 
+      //For plotting data and stacked MC, you can use the function PlotStack at the end of this file 
       TCanvas *c = new TCanvas("c", "Stacked Plot");
       mcStack->Draw("HIST");
       leg->Draw("SAME");
@@ -254,10 +274,12 @@ int main(int argc, char* argv[]) {
       //For all objects you want to write to the analysis file, call Write(), e.gl
       analysis->cd();
       mcStack->Write(("mcStack_" + zprime_mass + "_" + lepton).c_str());
-      h_sum->Write(("h_sum_" + zprime_mass + "_" + lepton).c_str());      
+      h_bg->Write(("h_bg_" + zprime_mass + "_" + lepton).c_str());    
+      h_bgZ->Write(("h_bgZ_" + zprime_mass + "_" + lepton).c_str());    
+        
 
       // Save the canvas as a PDF file
-      PlotStack("stackedPlots/stackedPlot_" + to_string(scale_zprime_xsec) + "_" + inv_mass + "_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
+      PlotStack("stackedPlots/stackedPlot_" + inv_mass + "_" + zprime_mass + "_" + lepton + ".pdf", "GeV", mcStack, h_data, leg);
 
       //End the programm properly by deleting all dynamic instances
       file_histogram_data->Close();
@@ -271,7 +293,6 @@ int main(int argc, char* argv[]) {
       delete file_histogram_zjets;
       delete leg;
       delete c;
-
     }
   }
   analysis->Close();
