@@ -71,33 +71,29 @@ int main(int argc, char* argv[]) {
   };
 
   // Werte für Berechnungen der Skalierungsfaktoren
-  vector<int> L = {110, 120}; // !!!ACHTUNG!!! Die Luminosität wurde händisch korrigiert, da die MC nicht zu den Daten passem! Das muss noch geändert Werden!!!
+  int L = 1000;
   vector<Simulation_info> simulation_info = {
-      {29.41 , 188227 , 230071},//922521},                     //diboson
-      {52.47 , 152640 , 180031},//1468942},                    //singletop
-      {252.82, 684191 , 816358},//7847944},                    //ttbar
-      {36214 , 6469186, 8306434},//66536222},                   //wjet
-      {2516.2, 6489769, 7826583},//37422926},                   //zjet
-      {110.0 , 8228, 10079},//100000},   //zprime400
-      {82.0  , 9115, 10622},//100000},   //zprime500
-      {20.0  , 9618, 11433},//100000},   //zprime750
-      { 5.5  , 9290, 11359},//100000},   //zprime1000
-      { 1.9  , 8586, 10688},//100000},   //zprime1250
-      { 0.83 , 7644, 10051},//100000},   //zprime1500
-      { 0.3  , 6771, 9178},//100000},   //zprime1750  
-      { 0.14 , 6107, 8348},//100000},   //zprime2000
-      { 0.067, 5402, 7987},//100000},   //zprime2250
-      { 0.035, 5194, 7529},//100000},   //zprime2500
-      { 0.012, 5255, 7132},//100000}    //zprime3000
+      {29.41 , 922521},   //diboson
+      {52.47 , 1468942},  //singletop
+      {252.82, 7847944},  //ttbar
+      {36214 , 66536222}, //wjet
+      {2516.2, 37422926}, //zjet
+      {110.0 , 100000},   //zprime400
+      {82.0  , 100000},   //zprime500
+      {20.0  , 100000},   //zprime750
+      { 5.5  , 100000},   //zprime1000
+      { 1.9  , 100000},   //zprime1250
+      { 0.83 , 100000},   //zprime1500
+      { 0.3  , 100000},   //zprime1750  
+      { 0.14 , 100000},   //zprime2000
+      { 0.067, 100000},   //zprime2250
+      { 0.035, 100000},   //zprime2500
+      { 0.012, 100000}    //zprime3000
   };
-  vector<float> w_el;
-  vector<float> w_mu;
+  vector<float> w;
   for (const auto& info : simulation_info) {
-    float weight_el = L[0] * info.xsec / info.events_el;
-    w_el.push_back(weight_el);
-    float weight_mu = L[1] * info.xsec / info.events_mu;
-    w_mu.push_back(weight_mu);
-
+    float weight = L * info.xsec / info.events_el;
+    w.push_back(weight);
   }
   
   
@@ -108,14 +104,14 @@ int main(int argc, char* argv[]) {
   for (const auto& zprime_mass : zprime_masses){
 
     //Skalierungsfaktoren
-    vector<float> scaleFactor_diboson    = {w_el[0]     ,w_mu[0]     }; 
-    vector<float> scaleFactor_singletop  = {w_el[1]     ,w_mu[1]     };
-    vector<float> scaleFactor_ttbar      = {w_el[2]     ,w_mu[2]     };
-    vector<float> scaleFactor_wjets      = {w_el[3]     ,w_mu[3]     };
-    vector<float> scaleFactor_zjets      = {w_el[4]     ,w_mu[4]     };
-    vector<float> scaleFactor_zprime     = {w_el[5+idx1],w_mu[5+idx1]}; 
+    float scaleFactor_diboson    = w[0]; //3.188*0.01;  
+    float scaleFactor_singletop  = w[1]; //3.572*0.01; 
+    float scaleFactor_ttbar      = w[2]; //3.221*0.01; 
+    float scaleFactor_wjets      = w[3]; //54.427*0.01;
+    float scaleFactor_zjets      = w[4]; //6.724*0.01; 
+    float scaleFactor_zprime     = w[5+idx1]; 
+
     idx1++;
-    unsigned int idx2 = 0;
 
     for (const auto& lepton : leptons) {   // for Schleife über el und mu
 
@@ -173,13 +169,12 @@ int main(int argc, char* argv[]) {
       //If you want to scale the histogram, use Scale(float factor)
       //If you want to adjust the bin width, use Rebin(int number_of_bins_to_be_merged)
 
-      h_zprime->Scale(scaleFactor_zprime[idx2]);
-      h_diboson->Scale(scaleFactor_diboson[idx2]);
-      h_singletop->Scale(scaleFactor_singletop[idx2]);
-      h_ttbar->Scale(scaleFactor_ttbar[idx2]);
-      h_wjets->Scale(scaleFactor_wjets[idx2]);
-      h_zjets->Scale(scaleFactor_zjets[idx2]);
-      idx2++;
+      h_zprime->Scale(scaleFactor_zprime);
+      h_diboson->Scale(scaleFactor_diboson);
+      h_singletop->Scale(scaleFactor_singletop);
+      h_ttbar->Scale(scaleFactor_ttbar);
+      h_wjets->Scale(scaleFactor_wjets);
+      h_zjets->Scale(scaleFactor_zjets);
 
 
       //You should set a different fill color for each process using SetFillColor(Color_t fcolor); examples for fcolor are kRed, kGreen, kYellow etc. 
